@@ -5,7 +5,7 @@ import { crearEntidad, fetchEntidades } from "@/services/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
-export default function crearEstudiante() {
+export default function CrearEstudiante() {
   const [formData, setFormData] = useState({
     nombres: "",
     apellidos: "",

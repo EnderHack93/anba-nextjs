@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
-export default function editarMateria({
+export default function EditarMateria({
   params,
 }: {
   params: {

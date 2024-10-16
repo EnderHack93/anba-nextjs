@@ -2,11 +2,11 @@
 import { Title } from "@/components";
 import { Docente } from "@/interfaces/entidades/docente";
 import { Materia } from "@/interfaces/entidades/materia";
-import { crearEntidad, fetchEntidades } from "@/services/apiService";
+import { crearEntidad as CrearEntidad, fetchEntidades } from "@/services/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
-export default function crearClase() {
+export default function CrearClase() {
   const [formData, setFormData] = useState({
     nombre: "",
     capacidad_max: Number(10),
@@ -82,7 +82,7 @@ export default function crearClase() {
     const { ...submitValues } = formData;
 
     try {
-      const response = await crearEntidad({
+      const response = await CrearEntidad({
         entidad: "clases",
         data: submitValues,
       });

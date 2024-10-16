@@ -35,7 +35,7 @@ const columnsFilter = [
   },
 ];
 
-export default function listaClases() {
+export default function ListaClases() {
   const [data, setData] = useState<Clase[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -234,33 +234,37 @@ export default function listaClases() {
         </div>
         <div className="mt-4">
           <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
-          {Object.entries(appliedFilters).map(([key, value]) => {
-            const cleanedKey = key.replace(/^filter\./, "");
-            const column = columnsFilter.find(
-              (elemento) => elemento.key === cleanedKey
-            );
+          {Object.entries(appliedFilters).length > 0 ? (
+            Object.entries(appliedFilters).map(([key, value]) => {
+              const cleanedKey = key.replace(/^filter\./, "");
+              const column = columnsFilter.find(
+                (elemento) => elemento.key === cleanedKey
+              );
 
-            return (
-              <div className="">
-                <ul className="flex flex-wrap gap-2 mt-2">
-                  <li
-                    key={key}
-                    className={`bg-royalBlue text-white rounded-full px-3 py-1 flex items-center`}
-                  >
-                    <span className="mr-2">
-                      {column ? column.label : key}: {value}
-                    </span>
+              return (
+                <ul className="flex flex-wrap gap-2 mt-2" key={cleanedKey}>
+                  {Object.entries(appliedFilters).map(([key, value], index) => (
+                    <li
+                      key={`${key}-${value}`} // Combinar `key` y `value` para asegurar una clave única
+                      className={`bg-royalBlue text-white rounded-full px-3 py-1 flex items-center`}
+                    >
+                      <span className="mr-2">
+                        {column ? column.label : key}: {value}
+                      </span>
 
-                    <FontAwesomeIcon
-                      icon={faCircleXmark}
-                      onClick={() => handleRemoveFilter(key)}
-                      className="text-lg cursor-pointer hover:shadow-xl"
-                    />
-                  </li>
+                      <FontAwesomeIcon
+                        icon={faCircleXmark}
+                        onClick={() => handleRemoveFilter(key)}
+                        className="text-lg cursor-pointer hover:shadow-xl"
+                      />
+                    </li>
+                  ))}
                 </ul>
-              </div>
-            );
-          })}
+              );
+            })
+          ):(
+            <div className=""></div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">

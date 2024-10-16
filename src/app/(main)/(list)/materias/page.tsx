@@ -48,7 +48,7 @@ const columnsFilter = [
   },
 ];
 
-export default function listaMaterias() {
+export default function ListaMaterias() {
   const [data, setData] = useState<Materia[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

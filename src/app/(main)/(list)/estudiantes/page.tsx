@@ -12,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -81,7 +82,7 @@ const columnsFilter = [
     ],
   },
 ];
-export default function listaDocentes() {
+export default function ListaDocentes() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -184,7 +185,7 @@ export default function listaDocentes() {
       <td className="table-cell md:hidden">
         <span className="flex items-center">
           <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
-            <img
+            <Image
               src={item.img_perfil}
               alt={item.nombres + " " + item.apellidos}
               className="w-full h-full rounded-full"
@@ -202,7 +203,7 @@ export default function listaDocentes() {
       </td>
       <td className="hidden md:table-cell">
         <div className="w-20 h-20 rounded-full bg-gray-300">
-          <img
+          <Image
             src={item.img_perfil}
             alt={item.nombres + " " + item.apellidos}
             className="w-full h-full rounded-full"
@@ -263,8 +264,8 @@ export default function listaDocentes() {
   return (
     <>
       <div className="bg-white p-4 rounded-md flex-1 m-4 shadow-xl">
-      <Title className="m-2" title="Estudiantes" />
-      <div className="w-full rounded h-px bg-gray-300 my-6" />
+        <Title className="m-2" title="Estudiantes" />
+        <div className="w-full rounded h-px bg-gray-300 my-6" />
         <div className="flex items-center justify-between">
           <div className="flex-col align-top">
             <h1 className="hidden md:block text-xl font-semibold">
@@ -298,18 +299,18 @@ export default function listaDocentes() {
           </div>
         </div>
         <div className="mt-4">
-          {Object.entries(appliedFilters).map(([key, value]) => {
-            const cleanedKey = key.replace(/^filter\./, "");
-            const column = columnsFilter.find(
-              (elemento) => elemento.key === cleanedKey
-            );
+          <div>
+            <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
+            <ul className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(appliedFilters).map(([key, value]) => {
+                const cleanedKey = key.replace(/^filter\./, "");
+                const column = columnsFilter.find(
+                  (elemento) => elemento.key === cleanedKey
+                );
 
-            return (
-              <div className="">
-                <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
-                <ul className="flex flex-wrap gap-2 mt-2">
+                return (
                   <li
-                    key={key}
+                    key={`${key}-${value}`} // Generar un key único combinando key y value
                     className="bg-royalBlue text-white rounded-full px-3 py-1 flex items-center"
                   >
                     <span className="mr-2">
@@ -322,10 +323,10 @@ export default function listaDocentes() {
                       className="text-lg cursor-pointer hover:shadow-xl"
                     />
                   </li>
-                </ul>
-              </div>
-            );
-          })}
+                );
+              })}
+            </ul>
+          </div>
         </div>
 
         <div className=" h-full">

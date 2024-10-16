@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
-export default function editarEstudiante({
+export default function EditarEstudiante({
   params,
 }: {
   params: {

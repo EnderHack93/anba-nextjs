@@ -81,7 +81,7 @@ const columnsFilter = [
     ],
   },
 ];
-export default function listaDocentes() {
+export default function ListaDocentes() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

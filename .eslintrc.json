@@ -1,3 +1,9 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Aquí puedes personalizar o deshabilitar las reglas
+    "react-hooks/rules-of-hooks": "error", // Verifica las reglas de los hooks
+    "react-hooks/exhaustive-deps": "warn", // Advierte sobre dependencias faltantes en useEffect
+    "react/jsx-key": "error" // Verifica que haya claves únicas en las listas iteradas
+  }
 }

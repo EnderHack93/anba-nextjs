@@ -6,7 +6,7 @@ import { editarEntidad, fetchEntidad, fetchEntidades } from "@/services/apiServi
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
-export default function editarClase({
+export default function EditarClase({
   params,
 }: {
   params: {
@@ -187,7 +187,7 @@ export default function editarClase({
     fetchClase(idClase);
     fetchMaterias();
     fetchDocentes();
-  }, []);
+  });
 
   return (
     <>

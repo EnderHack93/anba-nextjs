@@ -58,7 +58,7 @@ const columnsFilter = [
     ],
   },
 ];
-export default function listaDocentes() {
+export default function ListaDocentes() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,7 +95,10 @@ export default function listaDocentes() {
           })
 
           .catch((err) => {
-            console.error("Error al cambiar el estado de la especialidad:", err);
+            console.error(
+              "Error al cambiar el estado de la especialidad:",
+              err
+            );
             Swal.fire({
               icon: "error",
               title: "Error",
@@ -192,7 +195,9 @@ export default function listaDocentes() {
                 return (
                   <button
                     className="w-full"
-                    onClick={() => handleCambiarEstado(item.id_especialidad.toString())}
+                    onClick={() =>
+                      handleCambiarEstado(item.id_especialidad.toString())
+                    }
                   >
                     <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-coralRed text-white">
                       <IoRemoveCircleOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
@@ -206,7 +211,9 @@ export default function listaDocentes() {
                 return (
                   <button
                     className="w-full"
-                    onClick={() => handleCambiarEstado(item.id_especialidad.toString())}
+                    onClick={() =>
+                      handleCambiarEstado(item.id_especialidad.toString())
+                    }
                   >
                     <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-green-600 text-white">
                       <IoCheckmarkCircleOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
@@ -259,18 +266,18 @@ export default function listaDocentes() {
           </div>
         </div>
         <div className="mt-4">
-          {Object.entries(appliedFilters).map(([key, value]) => {
-            const cleanedKey = key.replace(/^filter\./, "");
-            const column = columnsFilter.find(
-              (elemento) => elemento.key === cleanedKey
-            );
+          <div>
+            <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
+            <ul className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(appliedFilters).map(([key, value]) => {
+                const cleanedKey = key.replace(/^filter\./, "");
+                const column = columnsFilter.find(
+                  (elemento) => elemento.key === cleanedKey
+                );
 
-            return (
-              <div className="">
-                <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
-                <ul className="flex flex-wrap gap-2 mt-2">
+                return (
                   <li
-                    key={key}
+                    key={`${key}-${value}`} // Generar un key único combinando key y value
                     className="bg-royalBlue text-white rounded-full px-3 py-1 flex items-center"
                   >
                     <span className="mr-2">
@@ -283,10 +290,10 @@ export default function listaDocentes() {
                       className="text-lg cursor-pointer hover:shadow-xl"
                     />
                   </li>
-                </ul>
-              </div>
-            );
-          })}
+                );
+              })}
+            </ul>
+          </div>
         </div>
 
         <div className="">
