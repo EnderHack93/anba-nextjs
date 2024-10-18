@@ -329,7 +329,7 @@ export default function EditarClase({
                 </option>
                 {materias.map((materia) => (
                   <option key={materia.id_materia} value={materia.id_materia}>
-                    {materia.nombre} - {materia.semestre}º Semestre
+                    {materia.nombre} - {materia.semestre.gestion}º Semestre
                   </option>
                 ))}
               </select>
