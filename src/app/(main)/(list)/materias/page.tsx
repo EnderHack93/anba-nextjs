@@ -215,7 +215,7 @@ export default function ListaMaterias() {
               </button>
               <a
                 className="flex items-center justify-center bg-emeraldGreen-darker text-white p-2  sm:px-2 sm:py-1 rounded-lg "
-                href={"/docentes/crear"}
+                href={"/materias/crear"}
               >
                 <FontAwesomeIcon
                   icon={faPlus}
