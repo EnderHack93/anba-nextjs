@@ -2,7 +2,7 @@
 import { Title } from "@/components";
 import { dtoCreateDocente } from "@/interfaces/dto/create/dtoCreateDocente";
 import { Especialidad } from "@/interfaces/entidades/especialidad";
-import { crearEntidad, fetchEntidades } from "@/services/apiService";
+import { crearEntidad, fetchEntidades } from "@/services/common/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 

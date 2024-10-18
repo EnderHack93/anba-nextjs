@@ -3,7 +3,7 @@ import { TableData, TablePagination, TableSearch, Title } from "@/components";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
 import { Estudiante } from "@/interfaces";
 import { Docente } from "@/interfaces/entidades/docente";
-import { desactivarEntidad, fetchEntidades } from "@/services/apiService";
+import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
 import {
   faCircleXmark,
   faEnvelope,
@@ -185,10 +185,12 @@ export default function ListaDocentes() {
       <td className="table-cell md:hidden">
         <span className="flex items-center">
           <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
-            <Image
+            <img
               src={item.img_perfil}
               alt={item.nombres + " " + item.apellidos}
               className="w-full h-full rounded-full"
+              width={100}
+              height={100}
             />
           </div>
           <div className="flex-col justify-start">
@@ -203,15 +205,17 @@ export default function ListaDocentes() {
       </td>
       <td className="hidden md:table-cell">
         <div className="w-20 h-20 rounded-full bg-gray-300">
-          <Image
+          <img
             src={item.img_perfil}
             alt={item.nombres + " " + item.apellidos}
             className="w-full h-full rounded-full"
+            width={100}
+            height={100}
           />
         </div>
       </td>
       <td className="hidden md:table-cell">{item.id_estudiante}</td>
-      <td className="hidden md:table-cell">{item.nombres}</td>
+      <td className="hidden md:table-cell">{item.nombres} {item.apellidos}</td>
       <td className="hidden md:table-cell">{item.especialidad.nombre}</td>
       <td className="hidden lg:table-cell">{item.correo}</td>
       <td className="hidden md:table-cell">{item.carnet}</td>

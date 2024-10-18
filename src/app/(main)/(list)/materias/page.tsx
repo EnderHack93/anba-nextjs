@@ -1,8 +1,8 @@
 "use client";
-import { Title } from "@/components";
+import { TablePagination, TableSearch, Title } from "@/components";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
 import { Materia } from "@/interfaces/entidades/materia";
-import { desactivarEntidad, fetchEntidades } from "@/services/apiService";
+import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
 import {
   faCircleXmark,
   faFilter,
@@ -157,7 +157,7 @@ export default function ListaMaterias() {
       <p className="text-sm text-gray-600 mt-2 line-clamp-3">
         {item.descripcion}
       </p>
-      <p className="text-sm text-gray-600 mt-2">Semestre: {item.semestre}</p>
+      <p className="text-sm text-gray-600 mt-2">Semestre: {item.semestre.nombre}</p>
       <p className="text-sm text-gray-600 mt-2">
         Especialidad: {item.especialidad.nombre}
       </p>
@@ -193,32 +193,37 @@ export default function ListaMaterias() {
 
   return (
     <>
+      <div className="bg-gray-50 p-4 rounded-md flex-1 m-4 mt-6">
       <Title title="Materias" />
-      <div className="bg-gray-50 p-4 rounded-md flex-1 m-4 mt-0">
+      <div className="w-full rounded h-px bg-gray-300 my-6" />
         <div className="flex items-center justify-between">
           <div className="flex-col">
-            <h1 className="text-xl font-semibold">Todas las materias</h1>
+            <h1 className="hidden md:block text-xl font-semibold ">Todas las materias</h1>
           </div>
-          <div className="flex gap-4">
-            <button
-              onClick={() => setIsFilterModalOpen(true)}
-              className="flex items-center justify-center bg-royalBlue-darker text-white p-2 rounded-lg"
-            >
-              <FontAwesomeIcon
-                icon={faFilter}
-                className="h-5 m-0 px-2 sm:px-0 sm:me-1"
-              />
-              <span className="hidden sm:block text-lg">Filtrar</span>
-            </button>
-            <Link href="/materias/crear">
-              <button className="flex items-center justify-center bg-emeraldGreen-darker text-white p-2 rounded-lg">
+          <div className="flex-col md:flex w-full justify-center gap-4 md:w-auto">
+            <TableSearch value={search} onSearchChange={handleSearchChange} />
+            <div className="flex justify-center items-center md:justify-end  mt-4 md:mt-0 w-full  gap-4 self-end">
+              <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="flex items-center justify-center bg-royalBlue-darker text-white p-2  sm:px-2 sm:py-1 rounded-lg"
+              >
                 <FontAwesomeIcon
-                  icon={faPlus}
+                  icon={faFilter}
                   className="h-5 m-0 px-2 sm:px-0 sm:me-1"
                 />
-                <span className="hidden sm:block text-lg">Crear nuevo</span>
+                <div className="hidden sm:block text-lg">Filtrar</div>
               </button>
-            </Link>
+              <a
+                className="flex items-center justify-center bg-emeraldGreen-darker text-white p-2  sm:px-2 sm:py-1 rounded-lg "
+                href={"/docentes/crear"}
+              >
+                <FontAwesomeIcon
+                  icon={faPlus}
+                  className=" h-5 m-0 px-2 sm:px-0 sm:me-1"
+                />
+                <div className="hidden sm:block text-lg">Crear nuevo</div>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -291,6 +296,11 @@ export default function ListaMaterias() {
               initialFilters={appliedFilters}
             />
           )}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </>

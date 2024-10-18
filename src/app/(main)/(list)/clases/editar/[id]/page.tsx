@@ -2,7 +2,7 @@
 import { Title } from "@/components";
 import { Docente } from "@/interfaces/entidades/docente";
 import { Materia } from "@/interfaces/entidades/materia";
-import { editarEntidad, fetchEntidad, fetchEntidades } from "@/services/apiService";
+import { editarEntidad, fetchEntidad, fetchEntidades } from "@/services/common/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 

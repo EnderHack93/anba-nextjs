@@ -17,7 +17,7 @@ export const TopMenu = () => {
       <nav className="flex px-5 max-h-20 justify-between items-center w-full text-2xl">
       <div className="">
         <Link href={"/"}>
-          <span className={`${noto.className} antialiased font-bold `}>
+          <span className={`${noto.className} antialiased`}>
             ANBA
           </span>
           <span> | Académico</span>

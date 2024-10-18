@@ -2,7 +2,7 @@
 import { TableSearch, Title } from "@/components";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
 import { Clase } from "@/interfaces/entidades/clase";
-import { desactivarEntidad, fetchEntidades } from "@/services/apiService";
+import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleXmark,
@@ -151,7 +151,7 @@ export default function ListaClases() {
         <strong>Especialidad:</strong> {item.materia.especialidad.nombre}
       </p>
       <p className="text-sm text-gray-600 mt-2">
-        <strong>Semestre:</strong> {item.materia.semestre}
+        <strong>Semestre:</strong> {item.materia.semestre.nombre}
       </p>
       <p className="text-sm text-gray-600 mt-2">
         <strong>Capacidad:</strong> {item.capacidad_max}
@@ -200,6 +200,7 @@ export default function ListaClases() {
     <>
       <div className="bg-white p-4 rounded-md flex-1 m-4 mt-8">
         <Title title="Clases" />
+        <div className="w-full rounded h-px bg-gray-300 my-6" />
         <div className="flex items-center justify-between">
           <div className="flex-col">
             <h1 className="hidden md:block text-xl font-semibold">
@@ -232,40 +233,26 @@ export default function ListaClases() {
             </div>
           </div>
         </div>
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
-          {Object.entries(appliedFilters).length > 0 ? (
-            Object.entries(appliedFilters).map(([key, value]) => {
-              const cleanedKey = key.replace(/^filter\./, "");
-              const column = columnsFilter.find(
-                (elemento) => elemento.key === cleanedKey
-              );
-
-              return (
-                <ul className="flex flex-wrap gap-2 mt-2" key={cleanedKey}>
-                  {Object.entries(appliedFilters).map(([key, value], index) => (
-                    <li
-                      key={`${key}-${value}`} // Combinar `key` y `value` para asegurar una clave única
-                      className={`bg-royalBlue text-white rounded-full px-3 py-1 flex items-center`}
-                    >
-                      <span className="mr-2">
-                        {column ? column.label : key}: {value}
-                      </span>
-
-                      <FontAwesomeIcon
-                        icon={faCircleXmark}
-                        onClick={() => handleRemoveFilter(key)}
-                        className="text-lg cursor-pointer hover:shadow-xl"
-                      />
-                    </li>
-                  ))}
-                </ul>
-              );
-            })
-          ):(
-            <div className=""></div>
-          )}
-        </div>
+        {Object.keys(appliedFilters).length > 0 && (
+          <div className="mt-4">
+            <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
+            <ul className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(appliedFilters).map(([key, value]) => {
+                const column = columnsFilter.find((el) => el.key === key);
+                return (
+                  <li key={key} className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center">
+                    {column ? column.label : key}: {value}
+                    <FontAwesomeIcon
+                      icon={faCircleXmark}
+                      onClick={() => handleRemoveFilter(key)}
+                      className="ml-2 cursor-pointer"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {data.length === 0 ? (

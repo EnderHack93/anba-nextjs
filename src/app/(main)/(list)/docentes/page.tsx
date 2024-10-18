@@ -2,7 +2,7 @@
 import { TableData, TablePagination, TableSearch, Title } from "@/components";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
 import { Docente } from "@/interfaces/entidades/docente";
-import { desactivarEntidad, fetchEntidades } from "@/services/apiService";
+import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
 import {
   faCircleXmark,
   faEnvelope,
@@ -250,8 +250,9 @@ export default function ListaDocentes() {
 
   return (
     <div className="w-full overflow-auto">
+      <div className="bg-white p-4 rounded-md flex-1 m-4 mt-6">
       <Title title="Docentes" />
-      <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+      <div className="w-full rounded h-px bg-gray-300 my-6" />
         <div className="flex items-center justify-between">
           <div className="flex-col">
             <h1 className="hidden md:block text-xl font-semibold">
@@ -284,34 +285,26 @@ export default function ListaDocentes() {
             </div>
           </div>
         </div>
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
-          <ul className="flex flex-wrap gap-2 mt-2">
-            {Object.entries(appliedFilters).map(([key, value]) => {
-              const cleanedKey = key.replace(/^filter\./, "");
-              const column = columnsFilter.find(
-                (elemento) => elemento.key === cleanedKey
-              );
-
-              return (
-                <li
-                  key={key}
-                  className="bg-royalBlue text-white rounded-full px-3 py-1 flex items-center"
-                >
-                  <span className="mr-2">
+        {Object.keys(appliedFilters).length > 0 && (
+          <div className="mt-4">
+            <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
+            <ul className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(appliedFilters).map(([key, value]) => {
+                const column = columnsFilter.find((el) => el.key === key);
+                return (
+                  <li key={key} className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center">
                     {column ? column.label : key}: {value}
-                  </span>
-
-                  <FontAwesomeIcon
-                    icon={faCircleXmark}
-                    onClick={() => handleRemoveFilter(key)}
-                    className="text-lg cursor-pointer hover:shadow-xl"
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                    <FontAwesomeIcon
+                      icon={faCircleXmark}
+                      onClick={() => handleRemoveFilter(key)}
+                      className="ml-2 cursor-pointer"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         <div className="">
           {data.length === 0 ? (

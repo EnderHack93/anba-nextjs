@@ -2,7 +2,7 @@
 import { Title } from "@/components";
 import { Docente } from "@/interfaces/entidades/docente";
 import { Materia } from "@/interfaces/entidades/materia";
-import { crearEntidad as CrearEntidad, fetchEntidades } from "@/services/apiService";
+import { crearEntidad as CrearEntidad, fetchEntidades } from "@/services/common/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -225,7 +225,7 @@ export default function CrearClase() {
               <option value="">Seleccione una materia</option>
               {materias.map((materia) => (
                 <option key={materia.id_materia} value={materia.id_materia}>
-                  {materia.nombre} - {materia.semestre}º Semestre
+                  {materia.nombre} - {materia.semestre.gestion}º Semestre
                 </option>
               ))}
             </select>

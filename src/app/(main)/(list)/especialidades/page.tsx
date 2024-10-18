@@ -1,56 +1,18 @@
 "use client";
-import { TableData, TablePagination, TableSearch, Title } from "@/components";
-import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
+import { TableSearch, Title } from "@/components";
 import { Especialidad } from "@/interfaces/entidades/especialidad";
-import { desactivarEntidad, fetchEntidades } from "@/services/apiService";
-import {
-  faCircleXmark,
-  faEnvelope,
-  faFilter,
-  faPlus,
-} from "@fortawesome/free-solid-svg-icons";
-
+import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
+import { faCircleXmark, faFilter, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import router from "next/router";
 import { useEffect, useState } from "react";
-import {
-  IoCheckmarkCircleOutline,
-  IoOptionsOutline,
-  IoRemoveCircleOutline,
-} from "react-icons/io5";
+import { IoCheckmarkCircleOutline, IoOptionsOutline, IoRemoveCircleOutline } from "react-icons/io5";
 import Swal from "sweetalert2";
-
-const columns = [
-  {
-    header: "Info",
-    accesor: "info",
-  },
-  {
-    header: "#",
-    accesor: "id_especialidad",
-
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Nombre",
-    accesor: "nombre",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Duracion",
-    accesor: "duracion",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Acciones",
-    accesor: "acciones",
-  },
-];
+import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
 
 const columnsFilter = [
   {
-    key: "estado",
+    key: "estado.nombre",
     label: "Estado",
     values: [
       { key: "ACTIVO", label: "ACTIVO" },
@@ -58,55 +20,45 @@ const columnsFilter = [
     ],
   },
 ];
-export default function ListaDocentes() {
-  const [data, setData] = useState([]);
+
+export default function ListaEspecialidades() {
+  const [data, setData] = useState<Especialidad[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(
-    {}
-  );
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>({});
 
-  const handleCambiarEstado = (id: string) => {
-    Swal.fire({
-      title: "¿Estas seguro?",
-      text: "Estas cambiando el estado de la especialidad",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#4169E1",
-      cancelButtonColor: "#FF4040",
-      confirmButtonText: "Si, cambiar!",
-      cancelButtonText: "Cancelar",
-    }).then((result) => {
+  const handleCambiarEstado = async (id: string) => {
+    try {
+      const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Cambiarás el estado de la especialidad",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#4169E1",
+        cancelButtonColor: "#FF4040",
+        confirmButtonText: "Sí, cambiar",
+        cancelButtonText: "Cancelar",
+      });
+
       if (result.isConfirmed) {
-        desactivarEntidad({ entidad: "especialidades", id })
-          .then(() => {
-            Swal.fire({
-              icon: "success",
-              title: "Cambiado",
-              text: "Se ha cambiado el estado de la especialidad",
-              showConfirmButton: false,
-              timer: 1000,
-            });
-            fetchDocentes();
-          })
-
-          .catch((err) => {
-            console.error(
-              "Error al cambiar el estado de la especialidad:",
-              err
-            );
-            Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "No se pudo cambiar el estado del docente",
-            });
-          });
+        await desactivarEntidad({ entidad: "especialidades", id });
+        Swal.fire({
+          icon: "success",
+          title: "Cambiado",
+          text: "Estado de la especialidad actualizado",
+          showConfirmButton: false,
+          timer: 1000,
+        });
+        fetchEspecialidades();
       }
-    });
+    } catch (error) {
+      console.error("Error al cambiar el estado:", error);
+      Swal.fire("Error", "No se pudo cambiar el estado de la especialidad", "error");
+    }
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,9 +70,7 @@ export default function ListaDocentes() {
     setCurrentPage(page);
   };
 
-  const handlePageSizeChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setPageSize(Number(event.target.value));
     setCurrentPage(1);
   };
@@ -138,106 +88,67 @@ export default function ListaDocentes() {
     setIsFilterModalOpen(false);
   };
 
-  const fetchDocentes = async () => {
+  const fetchEspecialidades = async () => {
     try {
       const response = await fetchEntidades({
         entidad: "especialidades",
-        search: search,
+        search,
         page: currentPage,
         limit: pageSize,
         filter: filters,
       });
-      const data = response.data;
       setTotalPages(response.meta.totalPages);
-      setData(data);
-    } catch (err) {
-      console.log(err);
+      setData(response.data);
+    } catch (error) {
+      console.error("Error al obtener las especialidades:", error);
     }
   };
 
   useEffect(() => {
-    fetchDocentes();
+    fetchEspecialidades();
   }, [search, currentPage, pageSize, filters]);
 
-  const renderRow = (item: Especialidad) => (
-    <tr key={item.id_especialidad} className="py-3">
-      <td className="table-cell md:hidden">
-        <span className="flex items-center">
-          <div className="w-20 h-20 rounded-full bg-gray-300 me-4"></div>
-          <div className="flex-col justify-start">
-            <div className="text-gray-500 text-sm">{item.nombre}</div>
-            <div className="text-gray-500 text-sm">{item.duracion}</div>
-            <div className="text-gray-500 text-sm">{item.estado}</div>
-          </div>
-        </span>
-      </td>
-      <td className="hidden md:table-cell">
-        <div className="w-20 h-20 rounded-full bg-gray-300"></div>
-      </td>
-      <td className="hidden md:table-cell">{item.id_especialidad}</td>
-      <td className="hidden md:table-cell">{item.nombre}</td>
-
-      <td className="hidden lg:table-cell">{item.estado}</td>
-      <td className="hidden md:table-cell">{item.duracion}</td>
-      <td>
-        <span className="flex sm:flex-col md:flex gap-2 justify-start ">
-          <div className="my-2 md:my-0 w-full xl:w-auto">
-            <Link href={`especialidades/editar/${item.id_especialidad}`}>
-              <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-royalBlue text-white">
-                <IoOptionsOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
-                <span className="text-lg hidden sm:block">Editar</span>
-              </span>
-            </Link>
-          </div>
-          <div className="my-2 md:my-0 w-full xl:w-auto">
-            {(() => {
-              if (item.estado == "ACTIVO") {
-                return (
-                  <button
-                    className="w-full"
-                    onClick={() =>
-                      handleCambiarEstado(item.id_especialidad.toString())
-                    }
-                  >
-                    <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-coralRed text-white">
-                      <IoRemoveCircleOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
-                      <span className="text-lg hidden sm:block">
-                        Desactivar
-                      </span>
-                    </span>
-                  </button>
-                );
-              } else {
-                return (
-                  <button
-                    className="w-full"
-                    onClick={() =>
-                      handleCambiarEstado(item.id_especialidad.toString())
-                    }
-                  >
-                    <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-green-600 text-white">
-                      <IoCheckmarkCircleOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
-                      <span className="text-lg hidden sm:block">Activar</span>
-                    </span>
-                  </button>
-                );
-              }
-            })()}
-          </div>
-        </span>
-      </td>
-    </tr>
+  const renderCard = (item: Especialidad) => (
+    <div key={item.id_especialidad} className="bg-white p-4 rounded-lg shadow-md flex flex-col items-start justify-between">
+      <div className="flex-col mb-4">
+        <h3 className="text-lg font-bold text-gray-700">{item.nombre}</h3>
+        <p className="text-sm text-gray-500">Duración: {item.duracion} semestres</p>
+        <p className="text-sm text-gray-500">Estado: {item.estado.nombre}</p>
+      </div>
+      <div className="flex gap-4">
+        <Link href={`/especialidades/editar/${item.id_especialidad}`}>
+          <button className="bg-royalBlue text-white px-4 py-2 rounded-lg flex items-center">
+            <IoOptionsOutline className="mr-2" />
+            <span>Editar</span>
+          </button>
+        </Link>
+        <button
+          onClick={() => handleCambiarEstado(item.id_especialidad.toString())}
+          className={`px-4 py-2 rounded-lg flex items-center ${item.estado.nombre === "ACTIVO" ? "bg-coralRed" : "bg-green-600"} text-white`}
+        >
+          {item.estado.nombre === "ACTIVO" ? (
+            <>
+              <IoRemoveCircleOutline className="mr-2" />
+              <span>Desactivar</span>
+            </>
+          ) : (
+            <>
+              <IoCheckmarkCircleOutline className="mr-2" />
+              <span>Activar</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
   );
 
   return (
-    <>
-      <Title title="Estudiantes" />
-      <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="w-full overflow-auto">
+      <div className="bg-white p-4 rounded-md flex-1 m-4 mt-6">
+        <Title title="Especialidades" />
         <div className="flex items-center justify-between">
-          <div className="flex-col">
-            <h1 className="hidden md:block text-xl font-semibold">
-              Todos los Estuadiantes
-            </h1>
+          <div>
+            <h1 className="hidden md:block text-xl font-semibold">Todas las especialidades</h1>
           </div>
           <div className="flex-col md:flex w-full justify-center gap-4 md:w-auto">
             <TableSearch value={search} onSearchChange={handleSearchChange} />
@@ -254,7 +165,7 @@ export default function ListaDocentes() {
               </button>
               <a
                 className="flex items-center justify-center bg-emeraldGreen-darker text-white p-2  sm:px-2 sm:py-1 rounded-lg "
-                href={"/estudiantes/crear"}
+                href={"/especialidades/crear"}
               >
                 <FontAwesomeIcon
                   icon={faPlus}
@@ -265,65 +176,46 @@ export default function ListaDocentes() {
             </div>
           </div>
         </div>
-        <div className="mt-4">
-          <div>
+        {Object.keys(appliedFilters).length > 0 && (
+          <div className="mt-4">
             <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
             <ul className="flex flex-wrap gap-2 mt-2">
               {Object.entries(appliedFilters).map(([key, value]) => {
-                const cleanedKey = key.replace(/^filter\./, "");
-                const column = columnsFilter.find(
-                  (elemento) => elemento.key === cleanedKey
-                );
-
+                const column = columnsFilter.find((el) => el.key === key);
                 return (
-                  <li
-                    key={`${key}-${value}`} // Generar un key único combinando key y value
-                    className="bg-royalBlue text-white rounded-full px-3 py-1 flex items-center"
-                  >
-                    <span className="mr-2">
-                      {column ? column.label : key}: {value}
-                    </span>
-
+                  <li key={key} className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center">
+                    {column ? column.label : key}: {value}
                     <FontAwesomeIcon
                       icon={faCircleXmark}
                       onClick={() => handleRemoveFilter(key)}
-                      className="text-lg cursor-pointer hover:shadow-xl"
+                      className="ml-2 cursor-pointer"
                     />
                   </li>
                 );
               })}
             </ul>
           </div>
-        </div>
-
-        <div className="">
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {data.length === 0 ? (
-            <div>No hay datos disponibles</div>
+            <div className="col-span-full text-center">No hay datos disponibles</div>
           ) : (
-            <TableData columns={columns} renderRow={renderRow} data={data} />
+            data.map((item) => renderCard(item))
           )}
         </div>
-        <div className="">
-          <div className="flex items-center mt-4 md:mt-0 justify-center">
-            <div className="flex items-center space-x-3">
-              <label
-                htmlFor="pageSize"
-                className="text-sm text-gray-700 font-medium"
-              >
-                Items por página:
-              </label>
-              <select
-                id="pageSize"
-                value={pageSize}
-                onChange={handlePageSizeChange}
-                className="p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue-light transition ease-in-out duration-150"
-              >
-                <option value={1}>1</option>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
+        <div className="mt-4">
+          <div className="flex items-center justify-center">
+            <label htmlFor="pageSize" className="mr-2 text-sm text-gray-700">Items por página:</label>
+            <select
+              id="pageSize"
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="p-2 border border-gray-300 bg-white rounded-md"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
           </div>
           {isFilterModalOpen && (
             <FilterComponent
@@ -333,13 +225,8 @@ export default function ListaDocentes() {
               initialFilters={appliedFilters}
             />
           )}
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
         </div>
       </div>
-    </>
+    </div>
   );
 }

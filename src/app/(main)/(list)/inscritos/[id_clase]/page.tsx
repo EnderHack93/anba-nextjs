@@ -6,11 +6,12 @@ import {
   fetchEntidades,
   crearEntidad,
   eliminarEntidad,
-} from "@/services/apiService";
+} from "@/services/common/apiService";
 import Swal from "sweetalert2";
 import { Inscrito } from "@/interfaces/entidades/inscrito";
 import { Clase } from "@/interfaces/entidades/clase";
-import { Estudiante } from "@/interfaces/entidades/estudiante"; // Asume que tienes esta interfaz
+import { Estudiante } from "@/interfaces/entidades/estudiante";
+import { fetchEstudiantesNoInscritosMateria } from "@/services/estudiantes/estudiantes";
 
 export default function InscritosClase({
   params,
@@ -21,7 +22,9 @@ export default function InscritosClase({
   const [clase, setClase] = useState<Clase | null>(null);
   const [inscritos, setInscritos] = useState<Inscrito[]>([]);
   const [filteredInscritos, setFilteredInscritos] = useState<Inscrito[]>([]);
-  const [estudiantesNoInscritos, setEstudiantesNoInscritos] = useState<Estudiante[]>([]);
+  const [estudiantesNoInscritos, setEstudiantesNoInscritos] = useState<
+    Estudiante[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,10 +50,11 @@ export default function InscritosClase({
   };
 
   // Obtener los estudiantes ya inscritos
-  const fetchEstudiantes = async (id: string) => {
+  const fetchInscritos = async (id_clase: string) => {
     try {
       const response = await fetchEntidades({
-        entidad: `inscritos?id_clase=${id}`,
+        entidad: `inscritos`,
+        filter: { id_clase },
       });
       setInscritos(response.data);
       setFilteredInscritos(response.data);
@@ -63,17 +67,14 @@ export default function InscritosClase({
         showConfirmButton: false,
         timer: 2000,
       });
-      setIsLoading(false);
     }
   };
 
   // Obtener estudiantes no inscritos en la clase o en la misma materia
-  const fetchEstudiantesNoInscritos = async (id_materia: string) => {
+  const fetchEstudiantesNoInscritos = async (id_materia: number) => {
     try {
-      const response = await fetchEntidades({
-        entidad: `estudiantes`,
-      });
-      setEstudiantesNoInscritos(response.data);
+      const response = await fetchEstudiantesNoInscritosMateria(id_materia);
+      setEstudiantesNoInscritos(response);
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -85,10 +86,13 @@ export default function InscritosClase({
     }
   };
 
+  // Cargar datos iniciales
   useEffect(() => {
     fetchClase(idClase);
-    fetchEstudiantes(idClase);
-    fetchEstudiantesNoInscritos(clase?.materia.id_materia.toString() ?? "");
+    fetchInscritos(idClase);
+    if (clase) {
+      fetchEstudiantesNoInscritos(clase.materia.id_materia);
+    }
   }, [idClase]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,8 +107,6 @@ export default function InscritosClase({
 
   // Agregar estudiante con la fecha actual automáticamente
   const handleAgregarEstudiante = async () => {
-    await fetchEstudiantesNoInscritos(clase?.materia.id_materia.toString() ?? "");
-
     const optionsHtml = estudiantesNoInscritos.map((estudiante) => {
       return `<option value="${estudiante.id_estudiante}">${estudiante.nombres} ${estudiante.apellidos}</option>`;
     });
@@ -115,7 +117,9 @@ export default function InscritosClase({
         <select id="estudianteSelect" class="swal2-input">
           ${optionsHtml.join("")}
         </select>
-        <input id="fecha_inscripcion" hidden type="date" class="swal2-input" value="${new Date().toISOString().split("T")[0]}" readonly>
+        <input id="fecha_inscripcion" hidden type="date" class="swal2-input" value="${
+          new Date().toISOString().split("T")[0]
+        }" readonly>
       `,
       focusConfirm: false,
       preConfirm: () => {
@@ -148,7 +152,8 @@ export default function InscritosClase({
         });
 
         Swal.fire("Inscrito", "El estudiante ha sido inscrito.", "success");
-        fetchEstudiantes(idClase); // Refrescar la lista de estudiantes después de agregar
+        fetchInscritos(idClase);
+        if(clase) fetchEstudiantesNoInscritos(clase.materia.id_materia); // Refrescar la lista de estudiantes después de agregar
       } catch (error) {
         Swal.fire("Error", "No se pudo inscribir al estudiante.", "error");
       }
@@ -174,7 +179,8 @@ export default function InscritosClase({
 
           Swal.fire("Eliminado", "El estudiante ha sido eliminado.", "success");
 
-          fetchEstudiantes(idClase); // Refrescar la lista de estudiantes después de eliminar
+          fetchInscritos(idClase);
+          if(clase) fetchEstudiantesNoInscritos(clase.materia.id_materia) // Refrescar la lista de estudiantes después de eliminar
         } catch (error) {
           Swal.fire("Error", "No se pudo eliminar al estudiante.", "error");
         }
@@ -219,11 +225,10 @@ export default function InscritosClase({
               <strong>Aula:</strong> {clase.aula}
             </p>
             <p className="text-gray-700">
-              <strong>Gestión:</strong> {clase.gestion}
+              <strong>Gestión:</strong> {clase.materia.semestre.gestion}
             </p>
             <p className="text-gray-700">
-              <strong>Materia:</strong> {clase.materia.nombre} -{" "}
-              {clase.materia.semestre}º Semestre
+              <strong>Materia:</strong> {clase.materia.nombre}
             </p>
             <p className="text-gray-700">
               <strong>Docente:</strong> {clase.docente.nombres}
@@ -250,6 +255,7 @@ export default function InscritosClase({
             </button>
           </div>
 
+          {/* Tabla de estudiantes inscritos */}
           <div className="overflow-y-auto max-h-80">
             {isLoading ? (
               <div className="text-center py-6">
@@ -287,7 +293,10 @@ export default function InscritosClase({
                   </thead>
                   <tbody>
                     {currentStudents.map((inscrito: Inscrito) => (
-                      <tr key={inscrito.id_inscrito} className="hover:bg-gray-100">
+                      <tr
+                        key={inscrito.id_inscrito}
+                        className="hover:bg-gray-100"
+                      >
                         <td className="px-6 py-4 border-b text-gray-800">
                           {inscrito.estudiante.nombres}
                         </td>
@@ -298,11 +307,17 @@ export default function InscritosClase({
                           {inscrito.estudiante.correo}
                         </td>
                         <td className="px-6 py-4 border-b text-gray-800">
-                          {new Date(inscrito.fecha_inscripcion).toLocaleDateString()}
+                          {new Date(
+                            inscrito.fecha_inscripcion
+                          ).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 border-b text-gray-800">
                           <button
-                            onClick={() => handleEliminarEstudiante(inscrito.id_inscrito.toString())}
+                            onClick={() =>
+                              handleEliminarEstudiante(
+                                inscrito.id_inscrito.toString()
+                              )
+                            }
                             className="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition duration-150"
                           >
                             Eliminar
@@ -316,19 +331,29 @@ export default function InscritosClase({
                 {/* Vista en formato tarjetas para pantallas pequeñas */}
                 <div className="lg:hidden">
                   {currentStudents.map((inscrito: Inscrito) => (
-                    <div key={inscrito.id_inscrito} className="bg-gray-100 rounded-lg p-4 mb-4">
+                    <div
+                      key={inscrito.id_inscrito}
+                      className="bg-gray-100 rounded-lg p-4 mb-4"
+                    >
                       <p className="text-lg font-semibold text-gray-800">
-                        {inscrito.estudiante.nombres} {inscrito.estudiante.apellidos}
+                        {inscrito.estudiante.nombres}{" "}
+                        {inscrito.estudiante.apellidos}
                       </p>
                       <p className="text-gray-700">
                         <strong>Correo:</strong> {inscrito.estudiante.correo}
                       </p>
                       <p className="text-gray-700">
                         <strong>Fecha de Inscripción:</strong>{" "}
-                        {new Date(inscrito.fecha_inscripcion).toLocaleDateString()}
+                        {new Date(
+                          inscrito.fecha_inscripcion
+                        ).toLocaleDateString()}
                       </p>
                       <button
-                        onClick={() => handleEliminarEstudiante(inscrito.id_inscrito.toString())}
+                        onClick={() =>
+                          handleEliminarEstudiante(
+                            inscrito.id_inscrito.toString()
+                          )
+                        }
                         className="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition duration-150 mt-2"
                       >
                         Eliminar
@@ -340,6 +365,7 @@ export default function InscritosClase({
             )}
           </div>
 
+          {/* Paginación */}
           <div className="flex justify-between items-center mt-4">
             <div>
               <span className="text-gray-700">
@@ -349,12 +375,18 @@ export default function InscritosClase({
               </span>
             </div>
             <div className="space-x-2">
-              {[...Array(Math.ceil(filteredInscritos.length / studentsPerPage)).keys()].map((number) => (
+              {[
+                ...Array(
+                  Math.ceil(filteredInscritos.length / studentsPerPage)
+                ).keys(),
+              ].map((number) => (
                 <button
                   key={number + 1}
                   onClick={() => paginate(number + 1)}
                   className={`px-3 py-1 rounded-md text-sm font-semibold ${
-                    currentPage === number + 1 ? "bg-royalBlue text-white" : "bg-gray-200 text-gray-700"
+                    currentPage === number + 1
+                      ? "bg-royalBlue text-white"
+                      : "bg-gray-200 text-gray-700"
                   } hover:bg-royalBlue hover:text-white transition duration-200`}
                 >
                   {number + 1}

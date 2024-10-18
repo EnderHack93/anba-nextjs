@@ -1,7 +1,8 @@
 "use client";
 import { Title } from "@/components";
 import { Especialidad } from "@/interfaces/entidades/especialidad";
-import { crearEntidad, fetchEntidades } from "@/services/apiService";
+import { Semestre } from "@/interfaces/entidades/semestre";
+import { crearEntidad, fetchEntidades } from "@/services/common/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -9,17 +10,28 @@ export default function CrearMateria() {
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
-    semestre: "",
+    id_semestre: Number(0), // Cambiado a id_semestre
     id_especialidad: Number(0),
   });
 
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
+  const [semestres, setSemestres] = useState<Semestre[]>([]);
 
   // Función para cargar las especialidades
   const fetchEspecialidades = async () => {
     try {
       const response = await fetchEntidades({ entidad: "especialidades" });
       setEspecialidades(response.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Función para cargar los semestres
+  const fetchSemestres = async () => {
+    try {
+      const response = await fetchEntidades({ entidad: "semestre" });
+      setSemestres(response);
     } catch (err) {
       console.error(err);
     }
@@ -32,7 +44,7 @@ export default function CrearMateria() {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === "id_especialidad" ? Number(value) : value,
+      [name]: name === "id_especialidad" || name === "id_semestre" ? Number(value) : value,
     });
   };
 
@@ -62,6 +74,7 @@ export default function CrearMateria() {
 
   useEffect(() => {
     fetchEspecialidades();
+    fetchSemestres(); // Cargar semestres al iniciar
   }, []);
 
   return (
@@ -112,21 +125,26 @@ export default function CrearMateria() {
 
             <div className="mb-4">
               <label
-                htmlFor="semestre"
+                htmlFor="id_semestre"
                 className="block text-sm font-medium text-gray-700"
               >
                 Semestre *
               </label>
-              <input
+              <select
                 required
-                type="text"
-                id="semestre"
-                name="semestre"
-                value={formData.semestre}
+                id="id_semestre"
+                name="id_semestre"
+                value={formData.id_semestre}
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
-                placeholder="Ingrese el semestre"
-              />
+              >
+                <option value="">Seleccione un semestre</option>
+                {semestres.map((semestre) => (
+                  <option key={semestre.id_semestre} value={semestre.id_semestre}>
+                    {semestre.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="mb-4">

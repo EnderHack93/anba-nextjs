@@ -69,7 +69,7 @@ export const TablePagination:React.FC<props> = ({
       <button
         onClick={handleNextPage}
         disabled={
-          currentPage === totalPages
+          currentPage === totalPages || totalPages === 0
         }
         className="flex items-center bg-royalBlue text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-royalBlue disabled:cursor-not-allowed disabled:bg-royalBlue-light"
       >

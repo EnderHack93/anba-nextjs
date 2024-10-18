@@ -1,4 +1,4 @@
-import { fetchEntidades } from "@/services/apiService";
+import { fetchEntidades } from "@/services/common/apiService";
 import { useEffect, useState } from "react";
 
 interface ValueOption {

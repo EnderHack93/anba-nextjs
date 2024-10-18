@@ -5,7 +5,7 @@ import {
   editarEntidad,
   fetchEntidad,
   fetchEntidades,
-} from "@/services/apiService";
+} from "@/services/common/apiService";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
