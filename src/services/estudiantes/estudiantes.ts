@@ -6,9 +6,13 @@ const apiClient = axios.create({
   baseURL: url_base,
 });
 
-export const fetchEstudiantesNoInscritosMateria = async (id_materia:Number) => {
+export const fetchEstudiantesNoInscritosMateria = async (id_materia:Number,token?:string) => {
   try {
-    const response = await apiClient.get(`/estudiantes/noInscritos?id_materia=${id_materia}`);
+    const response = await apiClient.get(`/estudiantes/noInscritos?id_materia=${id_materia}`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (err) {
     console.log(err);

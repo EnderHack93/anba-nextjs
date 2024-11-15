@@ -12,6 +12,9 @@ import { Inscrito } from "@/interfaces/entidades/inscrito";
 import { Clase } from "@/interfaces/entidades/clase";
 import { Estudiante } from "@/interfaces/entidades/estudiante";
 import { fetchEstudiantesNoInscritosMateria } from "@/services/estudiantes/estudiantes";
+import { useSession } from "next-auth/react";
+import LoadingScreen from "@/components/ui/loading-page/page";
+import UnauthorizedScreen from "@/components/ui/unautorized/page";
 
 export default function InscritosClase({
   params,
@@ -29,6 +32,7 @@ export default function InscritosClase({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
+  const { data: session, status } = useSession();
 
   // Obtener la clase por ID
   const fetchClase = async (id: string) => {
@@ -37,7 +41,10 @@ export default function InscritosClase({
         entidad: `clases`,
         id,
       });
-      if (response) setClase(response.data);
+      if (response) {
+        setClase(response.data);
+        fetchEstudiantesNoInscritos(response.data.materia.id_materia);
+      }
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -73,7 +80,10 @@ export default function InscritosClase({
   // Obtener estudiantes no inscritos en la clase o en la misma materia
   const fetchEstudiantesNoInscritos = async (id_materia: number) => {
     try {
-      const response = await fetchEstudiantesNoInscritosMateria(id_materia);
+      const response = await fetchEstudiantesNoInscritosMateria(
+        id_materia,
+        session?.user.accessToken
+      );
       setEstudiantesNoInscritos(response);
     } catch (error) {
       Swal.fire({
@@ -88,12 +98,22 @@ export default function InscritosClase({
 
   // Cargar datos iniciales
   useEffect(() => {
-    fetchClase(idClase);
-    fetchInscritos(idClase);
-    if (clase) {
-      fetchEstudiantesNoInscritos(clase.materia.id_materia);
+    if (status === "authenticated") {
+      fetchClase(idClase);
+      fetchInscritos(idClase);
     }
-  }, [idClase]);
+  }, [status,idClase]);
+
+  if (status === "loading") {
+    // Renderizar una pantalla de carga mientras se obtiene la sesión
+    return <LoadingScreen/>;
+  }
+
+  console.log({status,session})
+  if (status === "unauthenticated" || session?.user.rol != "DOCENTE") {
+    // Si el usuario no está autenticado, redirigirlo o mostrar un mensaje
+    return <UnauthorizedScreen/>;
+  }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -153,7 +173,7 @@ export default function InscritosClase({
 
         Swal.fire("Inscrito", "El estudiante ha sido inscrito.", "success");
         fetchInscritos(idClase);
-        if(clase) fetchEstudiantesNoInscritos(clase.materia.id_materia); // Refrescar la lista de estudiantes después de agregar
+        if (clase) fetchEstudiantesNoInscritos(clase.materia.id_materia); // Refrescar la lista de estudiantes después de agregar
       } catch (error) {
         Swal.fire("Error", "No se pudo inscribir al estudiante.", "error");
       }
@@ -180,7 +200,7 @@ export default function InscritosClase({
           Swal.fire("Eliminado", "El estudiante ha sido eliminado.", "success");
 
           fetchInscritos(idClase);
-          if(clase) fetchEstudiantesNoInscritos(clase.materia.id_materia) // Refrescar la lista de estudiantes después de eliminar
+          if (clase) fetchEstudiantesNoInscritos(clase.materia.id_materia); // Refrescar la lista de estudiantes después de eliminar
         } catch (error) {
           Swal.fire("Error", "No se pudo eliminar al estudiante.", "error");
         }

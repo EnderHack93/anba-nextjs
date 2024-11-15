@@ -71,32 +71,68 @@ export default function CrearEstudiante() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     const { confirmPassword, ...submitValues } = formData;
-    console.log(submitValues)
-
-    try{
+  
+    // Validación adicional antes de enviar
+    if (!formData.password || passwordInvalid || passwordError) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error en la Contraseña',
+        text: 'Por favor, revisa los campos de contraseña e inténtalo de nuevo.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#FF4040',
+        customClass: {
+          popup: 'rounded-lg shadow-md',
+          title: 'text-lg font-semibold text-red-600',
+          htmlContainer: 'text-sm text-gray-600',
+          confirmButton: 'px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200',
+        },
+      });
+      return;
+    }
+  
+    try {
       const response = await crearEntidad({
         entidad: "estudiantes",
-        data: submitValues
-      })
-
+        data: submitValues,
+      });
+  
       Swal.fire({
-        icon: "success",
-        title: "Creado",
-        text: "Se ha creado el estudiante",
+        icon: 'success',
+        title: 'Estudiante Creado',
+        text: 'El estudiante ha sido registrado exitosamente.',
         showConfirmButton: false,
-        timer: 1000,
-      }).then(
-        () => {
-          window.location.href = "/estudiantes";
-        }
-      )
-    }
-    catch(err){
-      console.log(err)
+        timer: 2000,
+        toast: true,
+        position: 'top-end',
+        timerProgressBar: true,
+        customClass: {
+          popup: 'rounded-lg shadow-md',
+          title: 'text-lg font-semibold text-royalBlue-dark',
+          htmlContainer: 'text-sm text-gray-600',
+        },
+      }).then(() => {
+        window.location.href = "/estudiantes";
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al Registrar',
+        text: 'Ocurrió un error al crear el estudiante. Por favor, inténtelo de nuevo.',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#FF4040',
+        customClass: {
+          popup: 'rounded-lg shadow-md',
+          title: 'text-lg font-semibold text-red-600',
+          htmlContainer: 'text-sm text-gray-600',
+          confirmButton: 'px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200',
+        },
+      });
     }
   };
+  
 
   useEffect(() => {
     fetchEspecialidades();

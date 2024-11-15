@@ -12,7 +12,6 @@ export default function CrearClase() {
     capacidad_max: Number(10),
     horario: "",
     aula: "",
-    gestion: "",
     id_materia: Number(0),
     id_docente: Number(0),
   });

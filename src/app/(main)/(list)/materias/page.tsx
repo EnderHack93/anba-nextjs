@@ -1,15 +1,23 @@
 "use client";
 import { TablePagination, TableSearch, Title } from "@/components";
+import LoadingScreen from "@/components/ui/loading-page/page";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
+import UnauthorizedScreen from "@/components/ui/unautorized/page";
 import { Materia } from "@/interfaces/entidades/materia";
-import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
+import {
+  desactivarEntidad,
+  fetchEntidades,
+} from "@/services/common/apiService";
 import {
   faCircleXmark,
   faFilter,
+  faPenToSquare,
   faPlus,
+  faSliders,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -59,37 +67,65 @@ export default function ListaMaterias() {
   const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(
     {}
   );
+  const { data: session, status } = useSession();
 
   const handleCambiarEstado = (id: string) => {
     Swal.fire({
-      title: "¿Estas seguro?",
-      text: "Estas cambiando el estado de la materia",
+      title: "¿Estás seguro de cambiar el estado?",
+      text: "El estado de la materia será modificado.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#4169E1",
       cancelButtonColor: "#FF4040",
-      confirmButtonText: "Si, cambiar!",
+      confirmButtonText: "Sí, cambiar",
       cancelButtonText: "Cancelar",
+      focusCancel: true,
+      customClass: {
+        popup: "rounded-lg shadow-md",
+        title: "text-lg font-semibold text-gray-800",
+        htmlContainer: "text-sm text-gray-600",
+        confirmButton:
+          "px-4 py-2 rounded-md bg-royalBlue text-white hover:bg-royalBlue-dark transition duration-200",
+        cancelButton:
+          "px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200",
+      },
     }).then((result) => {
       if (result.isConfirmed) {
         desactivarEntidad({ entidad: "materias", id })
           .then(() => {
             Swal.fire({
               icon: "success",
-              title: "Cambiado",
-              text: "Se ha cambiado el estado de la materia",
+              title: "Estado actualizado",
+              text: "El estado de la materia se ha cambiado con éxito.",
+              timer: 2000,
+              timerProgressBar: true,
               showConfirmButton: false,
-              timer: 1000,
+              toast: true,
+              position: "top-end",
+              customClass: {
+                popup: "rounded-lg shadow-md",
+                title: "text-lg font-semibold text-royalBlue-dark",
+                htmlContainer: "text-sm text-gray-600",
+              },
             });
             fetchMaterias();
           })
-
           .catch((err) => {
             console.error("Error al cambiar el estado de la materia:", err);
             Swal.fire({
               icon: "error",
               title: "Error",
-              text: "No se pudo cambiar el estado de la materia",
+              text: "No se pudo cambiar el estado de la materia.",
+              showConfirmButton: true,
+              confirmButtonText: "Cerrar",
+              confirmButtonColor: "#FF4040",
+              customClass: {
+                popup: "rounded-lg shadow-md",
+                title: "text-lg font-semibold text-red-600",
+                htmlContainer: "text-sm text-gray-600",
+                confirmButton:
+                  "px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200",
+              },
             });
           });
       }
@@ -133,6 +169,7 @@ export default function ListaMaterias() {
         page: currentPage,
         limit: pageSize,
         filter: filters,
+        token: session?.user.accessToken,
       });
       const data = response.data;
       setTotalPages(response.meta.totalPages);
@@ -143,8 +180,18 @@ export default function ListaMaterias() {
   };
 
   useEffect(() => {
-    fetchMaterias();
-  }, [search, currentPage, pageSize, filters]);
+    if (status === "authenticated" && session?.user?.accessToken) {
+      fetchMaterias();
+    }
+  }, [status, search, currentPage, pageSize, filters, session]);
+
+  if (status === "loading") {
+    return <LoadingScreen />;
+  }
+
+  if (status === "unauthenticated" || session?.user.rol !== "DOCENTE") {
+    return <UnauthorizedScreen />;
+  }
 
   const renderCard = (item: Materia) => (
     <div
@@ -157,15 +204,20 @@ export default function ListaMaterias() {
       <p className="text-sm text-gray-600 mt-2 line-clamp-3">
         {item.descripcion}
       </p>
-      <p className="text-sm text-gray-600 mt-2">Semestre: {item.semestre.nombre}</p>
+      <p className="text-sm text-gray-600 mt-2">
+        Semestre: {item.semestre.nombre}
+      </p>
       <p className="text-sm text-gray-600 mt-2">
         Especialidad: {item.especialidad.nombre}
       </p>
 
       <div className="flex items-center justify-around mt-4">
         <Link href={`materias/editar/${item.id_materia}`}>
-          <button className="bg-royalBlue text-white px-4 py-2 rounded-md hover:bg-royalBlue-dark transition">
-            <IoOptionsOutline className="w-5 h-5 inline-block" />
+          <button className="bg-royalBlue text-white px-4 py-2 rounded-md hover:bg-royalBlue-dark transition items-center flex">
+            <FontAwesomeIcon
+              className="w-5 h-5 me-1 inline-block"
+              icon={faPenToSquare}
+            />
             Editar
           </button>
         </Link>
@@ -175,7 +227,7 @@ export default function ListaMaterias() {
             onClick={() => handleCambiarEstado(item.id_materia.toString())}
             className="flex justify-center items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition"
           >
-            <IoRemoveCircleOutline className="w-5 h-5 inline-block" />
+            <IoRemoveCircleOutline className="me-1 w-6 h-6 md:w-5 md:h-5" />
             Desactivar
           </button>
         ) : (
@@ -183,7 +235,7 @@ export default function ListaMaterias() {
             onClick={() => handleCambiarEstado(item.id_materia.toString())}
             className="flex justify-center items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition"
           >
-            <IoCheckmarkCircleOutline className="w-5 h-5 inline-block" />
+            <IoCheckmarkCircleOutline className="me-1 w-6 h-6 md:w-5 md:h-5" />
             Activar
           </button>
         )}
@@ -194,11 +246,13 @@ export default function ListaMaterias() {
   return (
     <>
       <div className="bg-gray-50 p-4 rounded-md flex-1 m-4 mt-6">
-      <Title title="Materias" />
-      <div className="w-full rounded h-px bg-gray-300 my-6" />
+        <Title title="Materias" />
+        <div className="w-full rounded h-px bg-gray-300 my-6" />
         <div className="flex items-center justify-between">
           <div className="flex-col">
-            <h1 className="hidden md:block text-xl font-semibold ">Todas las materias</h1>
+            <h1 className="hidden md:block text-xl font-semibold ">
+              Todas las materias
+            </h1>
           </div>
           <div className="flex-col md:flex w-full justify-center gap-4 md:w-auto">
             <TableSearch value={search} onSearchChange={handleSearchChange} />

@@ -1,6 +1,7 @@
 import { noto } from "@/config/fonts";
 import "./globals.css";
 import { Metadata } from "next";
+import SessionAuthProvider from "@/context/SessionAuthProvider";
 
 export const metadata: Metadata = {
   title: "ANBA-ACADEMICO",
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={noto.className}>{children}</body>
+      <body className={noto.className}>
+        <SessionAuthProvider>{children}</SessionAuthProvider>
+      </body>
     </html>
   );
 }

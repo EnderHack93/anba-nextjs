@@ -1,5 +1,5 @@
 "use client";
-import { TableSearch, Title } from "@/components";
+import { TablePagination, TableSearch, Title } from "@/components";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
 import { Clase } from "@/interfaces/entidades/clase";
 import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
@@ -86,6 +86,10 @@ export default function ListaClases() {
     setSearch(event.target.value);
     setCurrentPage(1);
   };
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handlePageSizeChange = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -135,7 +139,7 @@ export default function ListaClases() {
     >
       <div className="flex justify-between">
         <h3 className="text-xl font-semibold text-gray-800 truncate">
-          {item.nombre} ({item.gestion})
+          {item.nombre} ({item.materia.semestre.nombre})
         </h3>
         <Link href={`inscritos/${item.id_clase}`}>
           <button className="bg-royalBlue text-white px-4 py-2 rounded-md hover:bg-royalBlue-dark transition">
@@ -149,9 +153,6 @@ export default function ListaClases() {
       </p>
       <p className="text-sm text-gray-600 mt-2">
         <strong>Especialidad:</strong> {item.materia.especialidad.nombre}
-      </p>
-      <p className="text-sm text-gray-600 mt-2">
-        <strong>Semestre:</strong> {item.materia.semestre.nombre}
       </p>
       <p className="text-sm text-gray-600 mt-2">
         <strong>Capacidad:</strong> {item.capacidad_max}
@@ -292,6 +293,9 @@ export default function ListaClases() {
               initialFilters={appliedFilters}
             />
           )}
+          <TablePagination currentPage={currentPage} totalPages={totalPages} onPageChange={
+            handlePageChange
+          } />
         </div>
       </div>
     </>

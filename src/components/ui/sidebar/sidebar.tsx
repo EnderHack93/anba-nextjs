@@ -1,4 +1,5 @@
 "use client";
+import { useSession, signOut } from "next-auth/react";
 import { useUIStore } from "@/admin";
 import clsx from "clsx";
 import Link from "next/link";
@@ -11,10 +12,31 @@ import {
   IoPricetagsOutline,
   IoSearchOutline,
 } from "react-icons/io5";
+import Swal from "sweetalert2";
 
 export const Sidebar = () => {
+  const { data: session } = useSession(); // Obtener la sesión del usuario
   const isSideMenuOpen = useUIStore((state) => state.isSideMenuOpen);
   const closeMenu = useUIStore((state) => state.closeSideMenu);
+
+  const userRole = session?.user?.rol; // Obtener el rol del usuario
+
+  // Opciones del menú para cada rol
+  const adminLinks = [
+    { href: "/estudiantes", label: "Estudiantes", icon: <IoPeopleOutline size={30} /> },
+    { href: "/docentes", label: "Docentes", icon: <IoPeopleOutline size={30} /> },
+    { href: "/especialidades", label: "Especialidades", icon: <IoPricetagsOutline size={30} /> },
+    { href: "/materias", label: "Materias", icon: <IoBookmarksOutline size={30} /> },
+    { href: "/clases", label: "Clases", icon: <IoCalendarOutline size={30} /> },
+  ];
+
+  const docenteLinks = [
+    { href: "/asistencia", label: "Asistencias", icon: <IoCalendarOutline size={30} /> },
+    { href: "/notas", label: "Notas", icon: <IoBookmarksOutline size={30} /> },
+  ];
+
+  // Determinar los enlaces a mostrar según el rol del usuario
+  const linksToShow = userRole === "ADMIN" ? adminLinks : docenteLinks;
 
   return (
     <div className="">
@@ -54,52 +76,50 @@ export const Sidebar = () => {
             />
           </div>
 
-          <Link
-            href="/estudiantes"
-            className="flex items-center p-2 hover:bg-gray-100 rounded transition-all"
-          >
-            <IoPeopleOutline size={30} />
-            <span className="ml-3 text-lg">Estudiantes</span>
-          </Link>
-
-          <Link
-            href="/docentes"
-            className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
-          >
-            <IoPeopleOutline size={30} />
-            <span className="ml-3 text-lg">Docentes</span>
-          </Link>
-
-          <Link
-            href="/especialidades"
-            className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
-          >
-            <IoPricetagsOutline size={30} />
-            <span className="ml-3 text-lg">Especialidades</span>
-          </Link>
-
-          <Link
-            href="/materias"
-            className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
-          >
-            <IoBookmarksOutline size={30} />
-            <span className="ml-3 text-lg">Materias</span>
-          </Link>
-
-          <Link
-            href="/clases"
-            className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
-          >
-            <IoCalendarOutline size={30} />
-            <span className="ml-3 text-lg">Clases</span>
-          </Link>
+          {/* Renderizar enlaces dinámicamente */}
+          {linksToShow.map((link, index) => (
+            <Link
+              key={index}
+              href={link.href}
+              className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
+            >
+              {link.icon}
+              <span className="ml-3 text-lg">{link.label}</span>
+            </Link>
+          ))}
 
           <div className="w-full rounded h-px bg-gray-200 my-6" />
 
-          {/* Link for closing session */}
+          {/* Link para cerrar sesión */}
           <Link
-            href="/"
+            href=""
             className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
+            onClick={() => {
+              Swal.fire({
+                title: "¿Estás seguro de cerrar sesión?",
+                text: "Tu sesión actual se cerrará y serás redirigido a la página de inicio de sesión.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, cerrar sesión",
+                cancelButtonText: "Cancelar",
+                focusCancel: true, // Enfoca el botón de cancelar para prevenir clics accidentales en "Sí"
+                customClass: {
+                  popup: "rounded-xl bg-white shadow-lg",
+                  title: "text-lg font-semibold text-gray-800",
+                  htmlContainer: "text-sm text-gray-600",
+                  confirmButton:
+                    "px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300",
+                  cancelButton:
+                    "px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all duration-300",
+                },
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  signOut({ callbackUrl: "/auth/login" });
+                }
+              });
+            }}
           >
             <IoLogOutOutline size={30} />
             <span className="ml-3 text-lg">Cerrar sesión</span>

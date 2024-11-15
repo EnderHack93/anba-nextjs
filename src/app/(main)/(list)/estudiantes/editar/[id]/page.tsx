@@ -7,6 +7,7 @@ import {
   fetchEntidad,
   fetchEntidades,
 } from "@/services/common/apiService";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -41,6 +42,7 @@ export default function EditarEstudiante({
     fecha_nacimiento: "",
     id_especialidad: 0,
   });
+  const { data: session, status } = useSession();
 
   const fetchEspecialidades = async () => {
     try {
@@ -53,8 +55,8 @@ export default function EditarEstudiante({
 
   const fetchEstudiante = async (id: string) => {
     try {
-      const response = await fetchEntidad({ entidad: "estudiantes", id });
-
+      const response = await fetchEntidad({ entidad: "estudiantes", id ,token:session?.user.accessToken});
+  
       if (response && response.data) {
         setFormData({
           nombres: response.data.nombres || "",
@@ -65,7 +67,7 @@ export default function EditarEstudiante({
           fecha_nacimiento: response.data.fecha_nacimiento.split("T")[0] || "",
           id_especialidad: response.data.especialidad.id_especialidad || 0,
         });
-
+  
         setOriginalData({
           nombres: response.data.nombres || "",
           apellidos: response.data.apellidos || "",
@@ -78,17 +80,23 @@ export default function EditarEstudiante({
         setImagePreview(response.data.img_perfil || "");
       } else {
         Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudo obtener la información del estudiante",
+          icon: 'error',
+          title: 'Error al obtener datos',
+          text: 'No se pudo obtener la información del estudiante. Redirigiendo...',
           showConfirmButton: false,
-          timer: 2000,
+          timer: 2500,
+          timerProgressBar: true,
+          customClass: {
+            popup: 'rounded-lg shadow-md',
+            title: 'text-lg font-semibold text-red-600',
+            htmlContainer: 'text-sm text-gray-600',
+          },
         }).then(() => {
-          window.location.href = "/estudiante";
+          window.location.href = "/estudiantes";
         });
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -129,32 +137,65 @@ export default function EditarEstudiante({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     const modifiedData = getModifiedData();
-
+  
     if (Object.keys(modifiedData).length === 0) {
-      Swal.fire("No hay cambios", "No has realizado ningún cambio.", "info");
+      Swal.fire({
+        icon: 'info',
+        title: 'Sin cambios',
+        text: 'No has realizado ningún cambio en los datos del estudiante.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#4169E1',
+        customClass: {
+          popup: 'rounded-lg shadow-md',
+          title: 'text-lg font-semibold text-gray-800',
+          htmlContainer: 'text-sm text-gray-600',
+          confirmButton: 'px-4 py-2 rounded-md bg-royalBlue text-white hover:bg-royalBlue-dark transition duration-200',
+        },
+      });
       return;
     }
-
+  
     try {
-      const response = await editarEntidad({
+      await editarEntidad({
         entidad: "estudiantes",
         data: modifiedData,
         id: idEstudiante,
+      });
+  
+      Swal.fire({
+        icon: 'success',
+        title: 'Estudiante actualizado',
+        text: 'Los datos del estudiante se han editado exitosamente.',
+        showConfirmButton: false,
+        timer: 2000,
+        toast: true,
+        position: 'top-end',
+        timerProgressBar: true,
+        customClass: {
+          popup: 'rounded-lg shadow-md',
+          title: 'text-lg font-semibold text-royalBlue-dark',
+          htmlContainer: 'text-sm text-gray-600',
+        },
       }).then(() => {
-        Swal.fire({
-          icon: "success",
-          title: "Editado",
-          text: "Se ha editado el estudiante",
-          showConfirmButton: false,
-          timer: 1000,
-        }).then(() => {
-          window.location.href = "/estudiantes";
-        });
+        window.location.href = "/estudiantes";
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al actualizar',
+        text: 'Ocurrió un error al editar el estudiante. Por favor, inténtelo de nuevo.',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#FF4040',
+        customClass: {
+          popup: 'rounded-lg shadow-md',
+          title: 'text-lg font-semibold text-red-600',
+          htmlContainer: 'text-sm text-gray-600',
+          confirmButton: 'px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200',
+        },
+      });
     }
   };
 
@@ -343,7 +384,7 @@ export default function EditarEstudiante({
                 <div className="">
                   <a
                     className="w-full block bg-emeraldGreen text-white py-2 px-4 rounded-md hover:bg-emeraldGreen-dark transition duration-150 my-1 text-center"
-                    href={"/docentes"}
+                    href={"/estudiantes"}
                   >
                     Volver
                   </a>

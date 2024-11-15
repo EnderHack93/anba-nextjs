@@ -1,9 +1,14 @@
 "use client";
 import { TableData, TablePagination, TableSearch, Title } from "@/components";
+import LoadingScreen from "@/components/ui/loading-page/page";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
+import UnauthorizedScreen from "@/components/ui/unautorized/page";
 import { Estudiante } from "@/interfaces";
 import { Docente } from "@/interfaces/entidades/docente";
-import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
+import {
+  desactivarEntidad,
+  fetchEntidades,
+} from "@/services/common/apiService";
 import {
   faCircleXmark,
   faEnvelope,
@@ -12,6 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -93,42 +99,68 @@ export default function ListaDocentes() {
   const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(
     {}
   );
+  const { data: session, status } = useSession();
 
   const handleCambiarEstado = (id: string) => {
     Swal.fire({
-      title: "¿Estas seguro?",
-      text: "Estas cambiando el estado del estudiante",
-      icon: "warning",
+      title: '¿Estás seguro de cambiar el estado?',
+      text: 'El estado del estudiante será modificado.',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#4169E1",
-      cancelButtonColor: "#FF4040",
-      confirmButtonText: "Si, cambiar!",
-      cancelButtonText: "Cancelar",
+      confirmButtonColor: '#4169E1',
+      cancelButtonColor: '#FF4040',
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar',
+      focusCancel: true,
+      customClass: {
+        popup: 'rounded-lg shadow-md',
+        title: 'text-lg font-semibold text-gray-800',
+        htmlContainer: 'text-sm text-gray-600',
+        confirmButton: 'px-4 py-2 rounded-md bg-royalBlue text-white hover:bg-royalBlue-dark transition duration-200',
+        cancelButton: 'px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200',
+      },
     }).then((result) => {
       if (result.isConfirmed) {
-        desactivarEntidad({ entidad: "estudiantes", id })
+        desactivarEntidad({ entidad: "estudiantes", id, token:session?.user.accessToken })
           .then(() => {
             Swal.fire({
-              icon: "success",
-              title: "Cambiado",
-              text: "Se ha cambiado el estado del estudiante",
+              icon: 'success',
+              title: 'Estado actualizado',
+              text: 'El estado del estudiante se ha cambiado con éxito.',
+              timer: 2000,
+              timerProgressBar: true,
               showConfirmButton: false,
-              timer: 1000,
+              toast: true,
+              position: 'top-end',
+              customClass: {
+                popup: 'rounded-lg shadow-md',
+                title: 'text-lg font-semibold text-royalBlue-dark',
+                htmlContainer: 'text-sm text-gray-600',
+              },
             });
             fetchDocentes();
           })
-
           .catch((err) => {
             console.error("Error al cambiar el estado del estudiante:", err);
             Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "No se pudo cambiar el estado del docente",
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo cambiar el estado del estudiante.',
+              showConfirmButton: true,
+              confirmButtonText: 'Cerrar',
+              confirmButtonColor: '#FF4040',
+              customClass: {
+                popup: 'rounded-lg shadow-md',
+                title: 'text-lg font-semibold text-red-600',
+                htmlContainer: 'text-sm text-gray-600',
+                confirmButton: 'px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200',
+              },
             });
           });
       }
     });
   };
+  
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -167,18 +199,31 @@ export default function ListaDocentes() {
         page: currentPage,
         limit: pageSize,
         filter: filters,
+        token: session?.user.accessToken,
       });
       const data = response.data;
       setTotalPages(response.meta.totalPages);
       setData(data);
     } catch (err) {
-      console.log(err);
+      console.log({err});
     }
   };
 
   useEffect(() => {
-    fetchDocentes();
-  }, [search, currentPage, pageSize, filters]);
+    if (status === "authenticated") {
+      fetchDocentes();
+    }
+  }, [status, search, currentPage, pageSize, filters]);
+
+  if (status === "loading") {
+    // Renderizar una pantalla de carga mientras se obtiene la sesión
+    return <LoadingScreen/>;
+  }
+
+  if (status === "unauthenticated" || session?.user.rol != "ADMIN") {
+    // Si el usuario no está autenticado, redirigirlo o mostrar un mensaje
+    return <UnauthorizedScreen/>;
+  }
 
   const renderRow = (item: Estudiante) => (
     <tr key={item.id_estudiante} className="py-3">
@@ -215,7 +260,9 @@ export default function ListaDocentes() {
         </div>
       </td>
       <td className="hidden md:table-cell">{item.id_estudiante}</td>
-      <td className="hidden md:table-cell">{item.nombres} {item.apellidos}</td>
+      <td className="hidden md:table-cell">
+        {item.nombres} {item.apellidos}
+      </td>
       <td className="hidden md:table-cell">{item.especialidad.nombre}</td>
       <td className="hidden lg:table-cell">{item.correo}</td>
       <td className="hidden md:table-cell">{item.carnet}</td>
@@ -302,36 +349,27 @@ export default function ListaDocentes() {
             </div>
           </div>
         </div>
-        <div className="mt-4">
-          <div>
+        {Object.keys(appliedFilters).length > 0 && (
+          <div className="mt-4">
             <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
             <ul className="flex flex-wrap gap-2 mt-2">
               {Object.entries(appliedFilters).map(([key, value]) => {
-                const cleanedKey = key.replace(/^filter\./, "");
-                const column = columnsFilter.find(
-                  (elemento) => elemento.key === cleanedKey
-                );
-
+                const column = columnsFilter.find((el) => el.key === key);
+                console.log({column,columnsFilter})
                 return (
-                  <li
-                    key={`${key}-${value}`} // Generar un key único combinando key y value
-                    className="bg-royalBlue text-white rounded-full px-3 py-1 flex items-center"
-                  >
-                    <span className="mr-2">
-                      {column ? column.label : key}: {value}
-                    </span>
-
+                  <li key={key} className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center">
+                    {column?.entidad}: {value}
                     <FontAwesomeIcon
                       icon={faCircleXmark}
                       onClick={() => handleRemoveFilter(key)}
-                      className="text-lg cursor-pointer hover:shadow-xl"
+                      className="ml-2 cursor-pointer"
                     />
                   </li>
                 );
               })}
             </ul>
           </div>
-        </div>
+        )}
 
         <div className=" h-full">
           {data.length === 0 ? (
