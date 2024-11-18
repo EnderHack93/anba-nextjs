@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import { resetPassword } from "@/services/auth/reset-password/page";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Suspense } from "react";
+import { useRouter } from "next/router";
 
 const ResetPasswordPage = () => {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams?.get("token");
+  const { token } = router.query;
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
