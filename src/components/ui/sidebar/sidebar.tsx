@@ -82,6 +82,7 @@ export const Sidebar = () => {
               key={index}
               href={link.href}
               className="flex items-center mt-6 p-2 hover:bg-gray-100 rounded transition-all"
+              onClick={closeMenu} // Cierra el menú al hacer clic en cualquier enlace
             >
               {link.icon}
               <span className="ml-3 text-lg">{link.label}</span>

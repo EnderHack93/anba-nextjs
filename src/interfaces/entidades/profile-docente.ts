@@ -1,7 +1,7 @@
 import { Docente } from "./docente";
 import { Estado } from "./estado";
 
-export interface ProfileDocente extends Docente{
+export interface ProfileUser extends Docente{
     usuario:{
         id:string
         username:string

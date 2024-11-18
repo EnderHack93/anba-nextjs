@@ -13,8 +13,9 @@ export default withAuth({
     },
   });
 
-export const config = {
+  export const config = {
     matcher: [
-        '/estudiantes',
+      // Protege todas las rutas excepto auth/*
+      '/((?!auth/).*)',
     ],
-};
+  };

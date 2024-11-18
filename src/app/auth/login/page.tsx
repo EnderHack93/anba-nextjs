@@ -146,7 +146,7 @@ export default function Login() {
               />
               Recordar sesión
             </label>
-            <Link href="/forgot-password" className="text-sm text-royalBlue hover:underline">
+            <Link href="recover-password" className="text-sm text-royalBlue hover:underline">
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
