@@ -4,19 +4,19 @@ import UnauthorizedScreen from "@/components/ui/unautorized/page";
 import LoadingScreen from "@/components/ui/loading-page/page";
 import { useEffect, useState } from "react";
 import { fetchProfileInfo } from "@/services/user/profile";
-import { ProfileDocente } from "@/interfaces/entidades/profile-docente";
+import { ProfileUser } from "@/interfaces/entidades/profile-docente";
 import { useRouter } from "next/navigation";
 
 const PerfilDocente = () => {
   const { data: session, status } = useSession();
-  const [perfil, setPerfil] = useState<ProfileDocente | null>(null);
+  const [perfil, setPerfil] = useState<ProfileUser | null>(null);
   const router = useRouter();
 
   const fetchInfo = async () => {
     if (session?.user.accessToken) {
       const response = await fetchProfileInfo(session?.user.accessToken);
       if (response) {
-        setDocente(response);
+        setPerfil(response);
       }
     }
   };
@@ -50,7 +50,7 @@ const PerfilDocente = () => {
 
   // Manejar la acción de editar el perfil
   const handleEditProfile = () => {
-    router.push(`/docente/editar/${docente?.id_docente}`);
+    router.push(`/docente/editar/${perfil?.id_docente}`);
   };
 
   return (
