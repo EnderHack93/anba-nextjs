@@ -57,7 +57,7 @@ const PerfilUsuario = () => {
           {/* Imagen de perfil */}
           <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200">
             <Image
-              src={perfil?.info.img_perfil || "/images/avatar.jpg"}
+              src={perfil?.info.img_perfil || "/images/avatar.png"}
               width={500}
               height={500}
               alt="Imagen del perfil"
