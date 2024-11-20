@@ -278,7 +278,7 @@ export default function ListaDocentes() {
           </div>
           <div className="my-2 md:my-0 w-full xl:w-auto">
             {(() => {
-              if (item.estado == "ACTIVO") {
+              if (item.estado.nombre == "ACTIVO") {
                 return (
                   <button
                     className="w-full"
