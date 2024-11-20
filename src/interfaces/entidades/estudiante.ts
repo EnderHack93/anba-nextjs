@@ -1,3 +1,6 @@
+import { Especialidad } from "./especialidad"
+import { Estado } from "./estado"
+
 export interface Estudiante{
   id_estudiante:string
   nombres:string
@@ -5,12 +8,8 @@ export interface Estudiante{
   correo:string
   img_perfil:string
   telefono?:string
-  estado:string
+  estado:Estado
   carnet:string
-  especialidad:{
-    id_especialidad:number
-    nombre:string
-
-  }
+  especialidad:Especialidad
   
 }

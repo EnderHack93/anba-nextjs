@@ -22,13 +22,10 @@ export const resetPassword = async (token: any, password: string) => {
     const response = await apiClient.post(
       "/auth/reset-password",
       {
-        newPassword: password,
+        token,
+        password,
       },
-      {
-        params: {
-          token: token,
-        },
-      }
+      {}
     );
     return response.data;
   } catch (err) {
