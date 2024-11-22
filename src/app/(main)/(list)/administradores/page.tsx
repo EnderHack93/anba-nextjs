@@ -1,9 +1,12 @@
 "use client";
+import Image from "next/image";
 import { TableData, TablePagination, TableSearch, Title } from "@/components";
 import { FilterComponent } from "@/components/ui/table/Filters/docentesFilters";
-import { Docente } from "@/interfaces/entidades/docente";
-import Image from "next/image";
-import { desactivarEntidad, fetchEntidades } from "@/services/common/apiService";
+import { Administrador } from "@/interfaces/entidades/administrador";
+import {
+  desactivarEntidad,
+  fetchEntidades,
+} from "@/services/common/apiService";
 import {
   faCircleXmark,
   faEnvelope,
@@ -13,7 +16,6 @@ import {
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import router from "next/router";
 import { useEffect, useState } from "react";
 import {
   IoCheckmarkCircleOutline,
@@ -35,7 +37,7 @@ const columns = [
     className: "hidden md:table-cell",
   },
   {
-    header: "Codigo",
+    header: "Código",
     accesor: "codigo",
     className: "hidden md:table-cell",
   },
@@ -46,8 +48,8 @@ const columns = [
     className: "hidden md:table-cell",
   },
   {
-    header: "Especialidad",
-    accesor: "especialidad",
+    header: "Teléfono",
+    accesor: "telefono",
     className: "hidden md:table-cell",
   },
   {
@@ -58,7 +60,6 @@ const columns = [
   {
     header: "Carnet",
     accesor: "carnet",
-
     className: "hidden md:table-cell",
   },
   {
@@ -69,12 +70,7 @@ const columns = [
 
 const columnsFilter = [
   {
-    key: "especialidad.nombre",
-    label: "Especialidad",
-    entidad: "especialidades",
-  },
-  {
-    key: "estado",
+    key: "estado.nombre",
     label: "Estado",
     values: [
       { key: "ACTIVO", label: "ACTIVO" },
@@ -82,7 +78,8 @@ const columnsFilter = [
     ],
   },
 ];
-export default function ListaDocentes() {
+
+export default function ListaAdministradores() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -97,7 +94,7 @@ export default function ListaDocentes() {
   const handleCambiarEstado = (id: string) => {
     Swal.fire({
       title: "¿Estas seguro?",
-      text: "Estas cambiando el estado del docente",
+      text: "Estas cambiando el estado del administrador",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#4169E1",
@@ -106,24 +103,24 @@ export default function ListaDocentes() {
       cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        desactivarEntidad({ entidad: "docentes", id })
+        desactivarEntidad({ entidad: "administradores", id })
           .then(() => {
             Swal.fire({
               icon: "success",
               title: "Cambiado",
-              text: "Se ha cambiado el estado del docente",
+              text: "Se ha cambiado el estado del administrador",
               showConfirmButton: false,
               timer: 1000,
             });
-            fetchDocentes();
+            fetchAdministradores();
           })
 
           .catch((err) => {
-            console.error("Error al cambiar el estado del docente:", err);
+            console.error("Error al cambiar el estado del administrador:", err);
             Swal.fire({
               icon: "error",
               title: "Error",
-              text: "No se pudo cambiar el estado del docente",
+              text: "No se pudo cambiar el estado del administrador",
             });
           });
       }
@@ -159,10 +156,10 @@ export default function ListaDocentes() {
     setIsFilterModalOpen(false);
   };
 
-  const fetchDocentes = async () => {
+  const fetchAdministradores = async () => {
     try {
       const response = await fetchEntidades({
-        entidad: "docentes",
+        entidad: "administradores",
         search: search,
         page: currentPage,
         limit: pageSize,
@@ -177,14 +174,14 @@ export default function ListaDocentes() {
   };
 
   useEffect(() => {
-    fetchDocentes();
+    fetchAdministradores();
   }, [search, currentPage, pageSize, filters]);
 
-  const renderRow = (item: Docente) => (
-    <tr key={item.id_docente} className="py-3">
+  const renderRow = (item: Administrador) => (
+    <tr key={item.id_admin} className="py-3">
       <td className="table-cell md:hidden">
         <span className="flex items-center">
-        <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
+          <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
             <Image
               src={item.img_perfil}
               alt={item.nombres + " " + item.apellidos}
@@ -194,35 +191,33 @@ export default function ListaDocentes() {
             />
           </div>
           <div className="flex-col justify-start">
+            <div className="text-gray-500 text-sm">{item.id_admin}</div>
             <div className="text-gray-500 text-sm">{item.nombres}</div>
             <div className="text-gray-500 text-sm">{item.apellidos}</div>
             <div className="text-gray-500 text-sm">{item.carnet}</div>
-            <div className="text-gray-500 text-sm">
-              {item.especialidad.nombre}
-            </div>
           </div>
         </span>
       </td>
       <td className="hidden md:table-cell">
-      <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
-            <Image
-              src={item.img_perfil}
-              alt={item.nombres + " " + item.apellidos}
-              className="w-full h-full rounded-full"
-              width={100}
-              height={100}
-            />
-          </div>
+        <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
+          <Image
+            src={item.img_perfil}
+            alt={item.nombres + " " + item.apellidos}
+            className="w-full h-full rounded-full"
+            width={100}
+            height={100}
+          />
+        </div>
       </td>
-      <td className="hidden md:table-cell">{item.id_docente}</td>
+      <td className="hidden md:table-cell">{item.id_admin}</td>
       <td className="hidden md:table-cell">{item.nombres}</td>
-      <td className="hidden md:table-cell">{item.especialidad.nombre}</td>
-      <td className="hidden lg:table-cell">{item.correo}</td>
+      <td className="hidden md:table-cell">{item.telefono}</td>
+      {/* <td className="hidden lg:table-cell">{item.usuario.email}</td> */}
       <td className="hidden md:table-cell">{item.carnet}</td>
       <td>
         <span className="flex sm:flex-col md:flex gap-2 justify-start ">
           <div className="my-2 md:my-0 w-full xl:w-auto">
-            <Link href={`docentes/editar/${item.id_docente}`}>
+            <Link href={`administradores/editar/${item.id_admin}`}>
               <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-royalBlue text-white">
                 <IoOptionsOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
                 <span className="text-lg hidden sm:block">Editar</span>
@@ -235,7 +230,7 @@ export default function ListaDocentes() {
                 return (
                   <button
                     className="w-full"
-                    onClick={() => handleCambiarEstado(item.id_docente)}
+                    onClick={() => handleCambiarEstado(item.id_admin)}
                   >
                     <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-coralRed text-white">
                       <IoRemoveCircleOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
@@ -249,7 +244,7 @@ export default function ListaDocentes() {
                 return (
                   <button
                     className="w-full"
-                    onClick={() => handleCambiarEstado(item.id_docente)}
+                    onClick={() => handleCambiarEstado(item.id_admin)}
                   >
                     <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-green-600 text-white">
                       <IoCheckmarkCircleOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
@@ -268,12 +263,12 @@ export default function ListaDocentes() {
   return (
     <div className="w-full overflow-auto">
       <div className="bg-white p-4 rounded-md flex-1 m-4 mt-6">
-      <Title title="Docentes" />
-      <div className="w-full rounded h-px bg-gray-300 my-6" />
+        <Title title="Administradores" />
+        <div className="w-full rounded h-px bg-gray-300 my-6" />
         <div className="flex items-center justify-between">
           <div className="flex-col">
             <h1 className="hidden md:block text-xl font-semibold">
-              Todos los docentes
+              Todos los administradores
             </h1>
           </div>
           <div className="flex-col md:flex w-full justify-center gap-4 md:w-auto">
@@ -291,7 +286,7 @@ export default function ListaDocentes() {
               </button>
               <a
                 className="flex items-center justify-center bg-emeraldGreen-darker text-white p-2  sm:px-2 sm:py-1 rounded-lg "
-                href={"/docentes/crear"}
+                href={"/administradores/crear"}
               >
                 <FontAwesomeIcon
                   icon={faPlus}
@@ -307,9 +302,14 @@ export default function ListaDocentes() {
             <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
             <ul className="flex flex-wrap gap-2 mt-2">
               {Object.entries(appliedFilters).map(([key, value]) => {
-                const column = columnsFilter.find((el) => "filter."+el.key === key);
+                const column = columnsFilter.find(
+                  (el) => "filter." + el.key === key
+                );
                 return (
-                  <li key={key} className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center">
+                  <li
+                    key={key}
+                    className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center"
+                  >
                     {column ? column.label : key}: {value}
                     <FontAwesomeIcon
                       icon={faCircleXmark}

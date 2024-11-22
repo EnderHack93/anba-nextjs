@@ -18,6 +18,9 @@ import {
   IoRemoveCircleOutline,
 } from "react-icons/io5";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
+import LoadingScreen from "@/components/ui/loading-page/page";
+import UnauthorizedScreen from "@/components/ui/unautorized/page";
 
 const columnsFilter = [
   {
@@ -46,6 +49,7 @@ export default function ListaClases() {
   const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(
     {}
   );
+  const { data: session, status } = useSession();
 
   const handleCambiarEstado = (id: string) => {
     Swal.fire({
@@ -68,7 +72,7 @@ export default function ListaClases() {
               showConfirmButton: false,
               timer: 1000,
             });
-            fetchDocentes();
+            fetchClases();
           })
           .catch((err) => {
             console.error("Error al cambiar el estado de la clase:", err);
@@ -111,7 +115,7 @@ export default function ListaClases() {
     setIsFilterModalOpen(false);
   };
 
-  const fetchDocentes = async () => {
+  const fetchClases = async () => {
     try {
       const response = await fetchEntidades({
         entidad: "clases",
@@ -119,6 +123,7 @@ export default function ListaClases() {
         page: currentPage,
         limit: pageSize,
         filter: filters,
+        token: session?.user.accessToken,
       });
       const data = response.data;
       setTotalPages(response.meta.totalPages);
@@ -129,9 +134,18 @@ export default function ListaClases() {
   };
 
   useEffect(() => {
-    fetchDocentes();
-  }, [search, currentPage, pageSize, filters]);
+    if(status === "authenticated") fetchClases();
+  }, [status,search, currentPage, pageSize, filters]);
 
+  if (status === "loading") {
+    // Renderizar una pantalla de carga mientras se obtiene la sesión
+    return <LoadingScreen/>;
+  }
+
+  if (status === "unauthenticated" || session?.user.rol != "ADMIN") {
+    // Si el usuario no está autenticado, redirigirlo o mostrar un mensaje
+    return <UnauthorizedScreen/>;
+  }
   const renderRow = (item: Clase) => (
     <div
       key={item.id_clase}
@@ -176,7 +190,7 @@ export default function ListaClases() {
           </button>
         </Link>
 
-        {item.estado === "ACTIVO" ? (
+        {item.estado.nombre === "ACTIVO" ? (
           <button
             onClick={() => handleCambiarEstado(item.id_clase.toString())}
             className="flex justify-center items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition"

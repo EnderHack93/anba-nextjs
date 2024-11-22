@@ -1,8 +1,15 @@
 "use client";
 import { Title } from "@/components";
+import LoadingScreen from "@/components/ui/loading-page/page";
+import UnauthorizedScreen from "@/components/ui/unautorized/page";
 import { Docente } from "@/interfaces/entidades/docente";
 import { Materia } from "@/interfaces/entidades/materia";
-import { editarEntidad, fetchEntidad, fetchEntidades } from "@/services/common/apiService";
+import {
+  editarEntidad,
+  fetchEntidad,
+  fetchEntidades,
+} from "@/services/common/apiService";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -20,25 +27,35 @@ export default function EditarClase({
     capacidad_max: Number(),
     horario: "",
     aula: "",
-    gestion: "",
     id_materia: Number(0),
     id_docente: "",
+    dias: [] as string[], // Nuevo campo para los días
   });
 
   const [docentes, setDocentes] = useState<Docente[]>([]);
-  const [filteredDocentes, setFilteredDocentes] = useState<Docente[]>([]); // Docentes filtrados por especialidad de materia
+  const [filteredDocentes, setFilteredDocentes] = useState<Docente[]>([]);
   const [materias, setMaterias] = useState<Materia[]>([]);
-  const [isDocenteSelectEnabled, setIsDocenteSelectEnabled] = useState(false); // Controla si el select de docentes está habilitado
-
+  const [isDocenteSelectEnabled, setIsDocenteSelectEnabled] = useState(false);
+  const { data: session, status } = useSession();
   const [originalData, setOriginalData] = useState({
     nombre: "",
     capacidad_max: Number(),
     horario: "",
     aula: "",
-    gestion: "",
     id_materia: Number(0),
     id_docente: "",
+    dias: [] as string[], // Campo original para comparación
   });
+
+  const diasSemana = [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+    "Domingo",
+  ]; // Lista de días para el select
 
   const fetchDocentes = async () => {
     try {
@@ -68,9 +85,9 @@ export default function EditarClase({
           capacidad_max: response.data.capacidad_max || 0,
           horario: response.data.horario || "",
           aula: response.data.aula || "",
-          gestion: response.data.gestion || "",
           id_materia: response.data.materia.id_materia || 0,
           id_docente: response.data.docente.id_docente || "",
+          dias: response.data.dias || [], // Asignar días desde la API
         });
 
         setOriginalData({
@@ -78,18 +95,19 @@ export default function EditarClase({
           capacidad_max: response.data.capacidad_max || 0,
           horario: response.data.horario || "",
           aula: response.data.aula || "",
-          gestion: response.data.gestion || "",
           id_materia: response.data.materia.id_materia || 0,
           id_docente: response.data.docente.id_docente || "",
+          dias: response.data.dias || [], // Guardar días originales
         });
 
-        // Filtrar docentes por especialidad de la materia obtenida
         const selectedMateria = response.data.materia;
         const filtered = docentes.filter(
-          (docente) => docente.especialidad.id_especialidad === selectedMateria.id_especialidad
+          (docente) =>
+            docente.especialidad.id_especialidad ===
+            selectedMateria.id_especialidad
         );
         setFilteredDocentes(filtered);
-        setIsDocenteSelectEnabled(true); // Habilitar el select de docentes al cargar los datos
+        setIsDocenteSelectEnabled(true);
       } else {
         Swal.fire({
           icon: "error",
@@ -111,7 +129,6 @@ export default function EditarClase({
   ) => {
     const { name, value } = e.target;
 
-    // Cuando se selecciona una materia, filtramos los docentes por especialidad
     if (name === "id_materia") {
       const selectedMateria = materias.find(
         (materia) => materia.id_materia === Number(value)
@@ -120,19 +137,31 @@ export default function EditarClase({
       if (selectedMateria) {
         const filtered = docentes.filter(
           (docente) =>
-            docente.especialidad.id_especialidad === selectedMateria.especialidad.id_especialidad
+            docente.especialidad.id_especialidad ===
+            selectedMateria.especialidad.id_especialidad
         );
         setFilteredDocentes(filtered);
-        setIsDocenteSelectEnabled(true); // Habilitamos el select de docentes
+        setIsDocenteSelectEnabled(true);
       } else {
         setFilteredDocentes([]);
-        setIsDocenteSelectEnabled(false); // Deshabilitamos el select si no se selecciona una materia válida
+        setIsDocenteSelectEnabled(false);
       }
     }
 
     setFormData({
       ...formData,
       [name]: name === "id_materia" ? Number(value) : value,
+    });
+  };
+
+  const handleDaysChange = (day: string) => {
+    const updatedDays = formData.dias.includes(day)
+      ? formData.dias.filter((d) => d !== day)
+      : [...formData.dias, day];
+
+    setFormData({
+      ...formData,
+      dias: updatedDays,
     });
   };
 
@@ -163,20 +192,19 @@ export default function EditarClase({
     }
 
     try {
-      const response = await editarEntidad({
+      await editarEntidad({
         entidad: "clases",
         data: modifiedData,
         id: idClase,
+      });
+      Swal.fire({
+        icon: "success",
+        title: "Editado",
+        text: "Se ha editado la clase",
+        showConfirmButton: false,
+        timer: 1000,
       }).then(() => {
-        Swal.fire({
-          icon: "success",
-          title: "Editado",
-          text: "Se ha editado la clase",
-          showConfirmButton: false,
-          timer: 1000,
-        }).then(() => {
-          window.location.href = "/clases";
-        });
+        //window.location.href = "/clases";
       });
     } catch (err) {
       console.log(err);
@@ -184,21 +212,45 @@ export default function EditarClase({
   };
 
   useEffect(() => {
-    fetchClase(idClase);
-    fetchMaterias();
-    fetchDocentes();
-  });
+    if (status === "authenticated") {
+      fetchClase(idClase);
+      fetchDocentes();
+      fetchMaterias();
+    }
+  }, [status]);
+
+  if (status === "loading") return <LoadingScreen />;
+  if (status === "unauthenticated" || session?.user.rol !== "ADMIN")
+    return <UnauthorizedScreen />;
 
   return (
     <>
       <div className="bg-white p-4 rounded-md flex-1 mt-4 shadow-2xl">
         <div className="justify-center flex-col">
           <Title title="Editar Clases" className="flex md:justify-center" />
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white rounded-lg  max-w-md
-          md:max-w-lg mt-5 mb-5  mx-auto"
-          >
+          <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
+            {/* Días de la semana */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Días *
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {diasSemana.map((dia) => (
+                  <label key={dia} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="dias"
+                      value={dia}
+                      checked={formData.dias.includes(dia)}
+                      onChange={() => handleDaysChange(dia)}
+                      className="rounded border-gray-300 focus:ring-2 focus:ring-royalBlue"
+                    />
+                    <span className="text-sm text-gray-700">{dia}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <div className="md:flex w-full md:gap-2 justify-center">
               <div className="w-full mb-4">
                 <label
@@ -290,25 +342,6 @@ export default function EditarClase({
               </div>
             </div>
 
-            <div className="md:flex w-full md:gap-2 justify-center">
-              <div className="w-full mb-4">
-                <label
-                  htmlFor="gestion"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Gestion
-                </label>
-                <input
-                  type="text"
-                  id="gestion"
-                  name="gestion"
-                  value={formData.gestion}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
-                  placeholder="Ingrese la gestión"
-                />
-              </div>
-            </div>
             <div className="mb-4">
               <label
                 htmlFor="id_materia"

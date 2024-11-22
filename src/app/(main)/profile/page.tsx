@@ -50,8 +50,8 @@ const PerfilUsuario = () => {
   }
 
   return (
-    <div className="flex items-center justify-center h-full bg-gray-100">
-      <div className="max-w-3xl w-full bg-white shadow-lg rounded-lg p-6">
+    <div className="flex items-center  justify-center h-full mt-4 ">
+      <div className="max-w-3xl w-full mx-4 shadow-lg rounded-lg bg-white h-full p-6">
         {/* Información del usuario */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
           {/* Imagen de perfil */}

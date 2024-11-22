@@ -11,26 +11,27 @@ import { Clase } from "@/interfaces/entidades/clase";
 import { Asistencia } from "@/interfaces/entidades/asistencia";
 import {
   CreateAsistenciasByClase,
-  getAsistenciasByClaseAndDate
+  getAsistenciasByClaseAndDate,
 } from "@/services/asistencias/asistencias";
 import LoadingScreen from "@/components/ui/loading-page/page";
 import UnauthorizedScreen from "@/components/ui/unautorized/page";
+import { fetchClasesByDocente } from "@/services/docentes-endpoints/clases";
+import { Title } from "@/components";
 
 export default function GestionAsistencias() {
   const [clases, setClases] = useState<Clase[]>([]);
   const [selectedClase, setSelectedClase] = useState<string>("");
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]); // Fecha actual
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  ); // Fecha actual
   const { data: session, status } = useSession();
 
   // Obtener lista de clases al cargar la página
   const fetchClases = async () => {
     try {
-      const response = await fetchEntidades({
-        entidad: "clases",
-        token: session?.user.accessToken,
-      });
-      setClases(response.data);
+      const response = await fetchClasesByDocente(session?.user.accessToken);
+      setClases(response);
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -63,7 +64,7 @@ export default function GestionAsistencias() {
     if (status === "authenticated") {
       fetchClases();
     }
-  }, [session]);
+  }, [status]);
 
   useEffect(() => {
     if (selectedClase && selectedDate) {
@@ -106,7 +107,7 @@ export default function GestionAsistencias() {
           const response = await CreateAsistenciasByClase(
             Number(selectedClase),
             selectedDate, // Pasar la fecha seleccionada
-            session?.user.accessToken,
+            session?.user.accessToken
           );
 
           setAsistencias(response);
@@ -144,7 +145,7 @@ export default function GestionAsistencias() {
       setAsistencias((prevAsistencias) =>
         prevAsistencias.map((asistencia) =>
           asistencia.id_asistencia === Number(id_asistencia)
-            ? { ...asistencia, asistio:nuevoEstado }
+            ? { ...asistencia, asistio: nuevoEstado }
             : asistencia
         )
       );
@@ -159,107 +160,108 @@ export default function GestionAsistencias() {
   };
 
   return (
-    <div className="bg-white p-4 rounded-md mt-6 shadow-md">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">
-        Gestión de Asistencias
-      </h1>
+    <div className="flex-wrap justify-center items-center">
+      <div className="bg-white w-11/12 md:w-1/2 justify-self-center p-4 rounded-md mt-6 shadow-md">
+      <Title title="Panel de Asistencia" />
+      <div className="w-full rounded h-px bg-gray-300 my-6" />
 
-      {/* Selección de clase */}
-      <div className="mb-4">
-        <label
-          htmlFor="clase"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Seleccionar Clase
-        </label>
-        <select
-          id="clase"
-          value={selectedClase}
-          onChange={handleClaseChange}
-          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
-        >
-          <option value="">Seleccione una clase</option>
-          {clases.map((clase) => (
-            <option key={clase.id_clase} value={clase.id_clase}>
-              {clase.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Selección de fecha */}
-      <div className="mb-4">
-        <label
-          htmlFor="fecha"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Seleccionar Fecha
-        </label>
-        <input
-          type="date"
-          id="fecha"
-          value={selectedDate}
-          onChange={handleDateChange}
-          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
-        />
-      </div>
-
-      {/* Botón para iniciar registro */}
-      {selectedClase && asistencias.length === 0 && (
-        <button
-          onClick={iniciarRegistroAsistencia}
-          className="bg-emeraldGreen text-white py-2 px-4 rounded-md hover:bg-emeraldGreen-dark transition duration-200"
-        >
-          Iniciar Registro de Asistencia
-        </button>
-      )}
-
-      {/* Tabla de asistencias */}
-      {asistencias.length > 0 && (
-        <div className="overflow-y-auto max-h-80 mt-4">
-          <table className="min-w-full bg-white border border-gray-200 rounded-md">
-            <thead>
-              <tr>
-                <th className="text-left px-6 py-3 border-b font-semibold text-gray-700">
-                  Estudiante
-                </th>
-                <th className="text-left px-6 py-3 border-b font-semibold text-gray-700">
-                  Estado
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {asistencias.map((asistencia) => (
-                <tr
-                  key={asistencia.id_asistencia}
-                  className="hover:bg-gray-100"
-                >
-                  <td className="px-6 py-4 border-b text-gray-800">
-                    {asistencia.estudiante.nombres}{" "}
-                    {asistencia.estudiante.apellidos}
-                  </td>
-                  <td className="px-6 py-4 border-b text-gray-800">
-                    <select
-                      value={asistencia.asistio}
-                      onChange={(e) =>
-                        handleCambiarEstado(
-                          asistencia.id_asistencia.toString(),
-                          e.target.value
-                        )
-                      }
-                      className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emeraldGreen"
-                    >
-                      <option value="FALTÓ">Falta</option>
-                      <option value="ASISTIÓ">Asistió</option>
-                      <option value="LICENCIA">Licencia</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Selección de clase */}
+        <div className="mb-4">
+          <label
+            htmlFor="clase"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Seleccionar Clase
+          </label>
+          <select
+            id="clase"
+            value={selectedClase}
+            onChange={handleClaseChange}
+            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
+          >
+            <option value="">Seleccione una clase</option>
+            {clases.map((clase) => (
+              <option key={clase.id_clase} value={clase.id_clase}>
+                {clase.nombre}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+
+        {/* Selección de fecha */}
+        <div className="mb-4">
+          <label
+            htmlFor="fecha"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Seleccionar Fecha
+          </label>
+          <input
+            type="date"
+            id="fecha"
+            value={selectedDate}
+            onChange={handleDateChange}
+            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
+          />
+        </div>
+
+        {/* Botón para iniciar registro */}
+        {selectedClase && asistencias.length === 0 && (
+          <button
+            onClick={iniciarRegistroAsistencia}
+            className="bg-emeraldGreen text-white py-2 px-4 rounded-md hover:bg-emeraldGreen-dark transition duration-200"
+          >
+            Iniciar Registro de Asistencia
+          </button>
+        )}
+
+        {/* Tabla de asistencias */}
+        {asistencias.length > 0 && (
+          <div className="overflow-y-auto max-h-80 mt-4">
+            <table className="min-w-full bg-white border border-gray-200 rounded-md">
+              <thead>
+                <tr>
+                  <th className="text-left px-6 py-3 border-b font-semibold text-gray-700">
+                    Estudiante
+                  </th>
+                  <th className="text-left px-6 py-3 border-b font-semibold text-gray-700">
+                    Estado
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {asistencias.map((asistencia) => (
+                  <tr
+                    key={asistencia.id_asistencia}
+                    className="hover:bg-gray-100"
+                  >
+                    <td className="px-6 py-4 border-b text-gray-800">
+                      {asistencia.estudiante.nombres}{" "}
+                      {asistencia.estudiante.apellidos}
+                    </td>
+                    <td className="px-6 py-4 border-b text-gray-800">
+                      <select
+                        value={asistencia.asistio}
+                        onChange={(e) =>
+                          handleCambiarEstado(
+                            asistencia.id_asistencia.toString(),
+                            e.target.value
+                          )
+                        }
+                        className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emeraldGreen"
+                      >
+                        <option value="FALTÓ">Falta</option>
+                        <option value="ASISTIÓ">Asistió</option>
+                        <option value="LICENCIA">Licencia</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

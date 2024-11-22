@@ -354,11 +354,10 @@ export default function ListaDocentes() {
             <h2 className="text-lg font-semibold">Filtros Aplicados:</h2>
             <ul className="flex flex-wrap gap-2 mt-2">
               {Object.entries(appliedFilters).map(([key, value]) => {
-                const column = columnsFilter.find((el) => el.key === key);
-                console.log({column,columnsFilter})
+                const column = columnsFilter.find((el) => "filter."+el.key === key);
                 return (
                   <li key={key} className="bg-royalBlue text-white px-3 py-1 rounded-full flex items-center">
-                    {column?.entidad}: {value}
+                    {column?.label}: {value}
                     <FontAwesomeIcon
                       icon={faCircleXmark}
                       onClick={() => handleRemoveFilter(key)}

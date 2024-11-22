@@ -4,12 +4,17 @@ import { useUIStore } from "@/admin";
 import clsx from "clsx";
 import Link from "next/link";
 import {
+  IoBarChartOutline,
   IoBookmarksOutline,
   IoCalendarOutline,
+  IoCheckboxOutline,
   IoCloseOutline,
+  IoDocumentTextOutline,
+  IoEaselOutline,
   IoLogOutOutline,
   IoPeopleOutline,
   IoPricetagsOutline,
+  IoReaderOutline,
   IoSearchOutline,
 } from "react-icons/io5";
 import Swal from "sweetalert2";
@@ -23,16 +28,43 @@ export const Sidebar = () => {
 
   // Opciones del menú para cada rol
   const adminLinks = [
-    { href: "/estudiantes", label: "Estudiantes", icon: <IoPeopleOutline size={30} /> },
-    { href: "/docentes", label: "Docentes", icon: <IoPeopleOutline size={30} /> },
-    { href: "/especialidades", label: "Especialidades", icon: <IoPricetagsOutline size={30} /> },
-    { href: "/materias", label: "Materias", icon: <IoBookmarksOutline size={30} /> },
+    { href: "/", label: "Dashboard", icon: <IoBarChartOutline size={30} /> },
+    {
+      href: "/estudiantes",
+      label: "Estudiantes",
+      icon: <IoPeopleOutline size={30} />,
+    },
+    {
+      href: "/docentes",
+      label: "Docentes",
+      icon: <IoPeopleOutline size={30} />,
+    },
+    {
+      href: "/administradores",
+      label: "Administradores",
+      icon: <IoPeopleOutline size={30} />,
+    },
+    {
+      href: "/especialidades",
+      label: "Especialidades",
+      icon: <IoPricetagsOutline size={30} />,
+    },
+    {
+      href: "/materias",
+      label: "Materias",
+      icon: <IoBookmarksOutline size={30} />,
+    },
     { href: "/clases", label: "Clases", icon: <IoCalendarOutline size={30} /> },
   ];
 
   const docenteLinks = [
-    { href: "/asistencia", label: "Asistencias", icon: <IoCalendarOutline size={30} /> },
-    { href: "/notas", label: "Notas", icon: <IoBookmarksOutline size={30} /> },
+    {
+      href: "/asistencia",
+      label: "Asistencias",
+      icon: <IoCheckboxOutline size={30} />,
+    },
+    { href: "/notas", label: "Notas", icon: <IoDocumentTextOutline size={30} /> },
+    { href: "/horario", label: "Horario", icon: <IoCalendarOutline size={30} /> },
   ];
 
   // Determinar los enlaces a mostrar según el rol del usuario
