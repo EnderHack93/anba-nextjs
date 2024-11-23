@@ -13,3 +13,10 @@ export default withAuth({
     },
   });
 
+ export const config = {
+  matcher: [
+    // Protect all routes except auth/* and api/auth/*
+    '/((?!auth/|api/auth/).*)',
+  ],
+};
+
