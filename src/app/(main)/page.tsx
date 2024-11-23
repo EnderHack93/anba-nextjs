@@ -13,6 +13,7 @@ import {
   Legend,
   Title,
 } from "chart.js";
+import PredictionWidget from "@/components/prediction/page";
 
 // Registrar los elementos necesarios para los gráficos
 ChartJS.register(
@@ -112,6 +113,7 @@ export default function CuadroDeMando() {
           Rendimiento
         </button>
       </div>
+      <PredictionWidget />
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">

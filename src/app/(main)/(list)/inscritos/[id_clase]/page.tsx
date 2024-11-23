@@ -110,7 +110,7 @@ export default function InscritosClase({
   }
 
   console.log({status,session})
-  if (status === "unauthenticated" || session?.user.rol != "DOCENTE") {
+  if (status === "unauthenticated" || session?.user.rol != "ADMIN") {
     // Si el usuario no está autenticado, redirigirlo o mostrar un mensaje
     return <UnauthorizedScreen/>;
   }
