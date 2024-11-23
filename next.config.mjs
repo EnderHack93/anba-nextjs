@@ -17,15 +17,11 @@ const nextConfig = {
   swcMinify: true,
   reactStrictMode:false,
   images: {
+    unoptimized:false,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
         pathname: '/**',
       },
       {

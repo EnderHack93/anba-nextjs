@@ -71,7 +71,7 @@ export default function Login() {
       {/* Imagen de fondo con blur */}
       <div className="absolute inset-0 overflow-hidden">
         <Image
-          src="/images/posrtada2.jpg"
+          src="https://res.cloudinary.com/dvxqmtrlf/image/upload/v1732373927/portada_login.jpg"
           alt="Background"
           fill
           className="object-cover blur-sm opacity-60"
