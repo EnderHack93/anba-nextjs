@@ -1,4 +1,8 @@
-export interface Prediccion{
-    estado_academico:string,
-    probabilidades:number[]
-}
+interface Prediction {
+    nombre: string;
+    especialidad: string;
+    prediccion: {
+      estado_academico: string;
+      probabilidades: number[];
+    };
+  }

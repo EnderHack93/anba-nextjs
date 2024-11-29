@@ -7,9 +7,9 @@ interface Props {
 }
 export const TableData = ({ columns, renderRow, data }: Props) => {
   return (
-    <table className="w-full mt-4 border-separate border-spacing-5">
+    <table className="w-full mt-4 border-separate border-spacing-5 border-black">
       <thead>
-        <tr className="text-left text-gray-500 text-sm">
+        <tr className="text-left text-gray-500 text-s">
           {columns.map((column) => (
             <th className={column.className} key={column.accesor}>
               {column.header}

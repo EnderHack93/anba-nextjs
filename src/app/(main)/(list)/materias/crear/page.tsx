@@ -79,7 +79,7 @@ export default function CrearMateria() {
 
   return (
     <>
-      <div className="bg-white p-4 rounded-md flex-1 mt-0 shadow-2xl">
+      <div className="bg-white p-4 rounded-md flex-1 mt-4  shadow-2xl">
         <div className="justify-center flex-col">
           <Title title="Crear Materia" className="flex md:justify-center" />
           <form

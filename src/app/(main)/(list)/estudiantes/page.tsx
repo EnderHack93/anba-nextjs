@@ -80,7 +80,7 @@ const columnsFilter = [
     entidad: "especialidades",
   },
   {
-    key: "estado",
+    key: "estado.nombre",
     label: "Estado",
     values: [
       { key: "ACTIVO", label: "ACTIVO" },
@@ -94,8 +94,8 @@ export default function ListaDocentes() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<Record<string, string>>({});
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<Record<string, string>>({});
   const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(
     {}
   );
@@ -249,13 +249,13 @@ export default function ListaDocentes() {
         </span>
       </td>
       <td className="hidden md:table-cell">
-        <div className="w-20 h-20 rounded-full bg-gray-300">
+        <div className="w-14 h-14 rounded-full bg-gray-300">
           <img
             src={item.img_perfil}
             alt={item.nombres + " " + item.apellidos}
             className="w-full h-full rounded-full"
-            width={100}
-            height={100}
+            width={60}
+            height={60}
           />
         </div>
       </td>
@@ -267,8 +267,8 @@ export default function ListaDocentes() {
       <td className="hidden lg:table-cell">{item.correo}</td>
       <td className="hidden md:table-cell">{item.carnet}</td>
       <td>
-        <span className="flex sm:flex-col md:flex gap-2 justify-start ">
-          <div className="my-2 md:my-0 w-full xl:w-auto">
+        <span className="flex sm:flex-col md:flex xl:flex-row gap-2 justify-start ">
+          <div className="my-1   md:my-0 w-full xl:w-auto">
             <Link href={`estudiantes/editar/${item.id_estudiante}`}>
               <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-royalBlue text-white">
                 <IoOptionsOutline className=" me-0 sm:me-1 w-6 h-6  md:w-5 md:h-5" />
@@ -276,7 +276,7 @@ export default function ListaDocentes() {
               </span>
             </Link>
           </div>
-          <div className="my-2 md:my-0 w-full xl:w-auto">
+          <div className="my-1 md:my-0 w-full xl:w-auto">
             {(() => {
               if (item.estado.nombre == "ACTIVO") {
                 return (

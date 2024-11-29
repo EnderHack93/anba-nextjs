@@ -5,7 +5,6 @@ import { decodeJwt } from "jose";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const handler = NextAuth({
-  debug:true,
   providers: [
     CredentialsProvider({
       name: "Credentials",

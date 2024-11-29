@@ -181,13 +181,31 @@ export const editarEntidad = async ({
   token?: string;
 }) => {
   try {
-    const response = await apiClient.patch(`${entidad}/${id}`, data,{
+    const response = await apiClient.patch(`${entidad}/${id}`, data, {
       headers: {
-        Authorization: `Bearer ${token}`
-        }
+        Authorization: `Bearer ${token}`,
+      },
     });
-    return response.data;
-  } catch (err) {
-    console.log(`Error al crear la entidad ${err} `);
+
+    return {
+      success: true,
+      data: response.data, // Devuelve los datos de la respuesta en caso de éxito
+    };
+  } catch (err: any) {
+    // Captura detalles del error
+    const errorMessage =
+      err.response?.data?.message ||
+      err.response?.statusText ||
+      "Error desconocido en el servidor";
+
+    return {
+      success: false,
+      error: {
+        message: errorMessage,
+        status: err.response?.status || 500, // Código de estado HTTP
+        details: err.response?.data || null, // Información adicional del servidor
+      },
+    };
   }
 };
+

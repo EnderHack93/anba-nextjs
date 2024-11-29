@@ -74,7 +74,7 @@ const columnsFilter = [
     entidad: "especialidades",
   },
   {
-    key: "estado",
+    key: "estado.nombre",
     label: "Estado",
     values: [
       { key: "ACTIVO", label: "ACTIVO" },
@@ -204,13 +204,13 @@ export default function ListaDocentes() {
         </span>
       </td>
       <td className="hidden md:table-cell">
-      <div className="w-20 h-20 rounded-full bg-gray-300 me-4">
+      <div className="w-14 h-14 rounded-full bg-gray-300 me-4">
             <Image
               src={item.img_perfil}
               alt={item.nombres + " " + item.apellidos}
               className="w-full h-full rounded-full"
-              width={100}
-              height={100}
+              width={50}
+              height={50}
             />
           </div>
       </td>
@@ -220,7 +220,7 @@ export default function ListaDocentes() {
       <td className="hidden lg:table-cell">{item.correo}</td>
       <td className="hidden md:table-cell">{item.carnet}</td>
       <td>
-        <span className="flex sm:flex-col md:flex gap-2 justify-start ">
+        <span className="flex sm:flex-col md:flex xl:flex-row gap-2 justify-start ">
           <div className="my-2 md:my-0 w-full xl:w-auto">
             <Link href={`docentes/editar/${item.id_docente}`}>
               <span className="flex items-center py-1 px-1 md:px-3 rounded-lg justify-center bg-royalBlue text-white">

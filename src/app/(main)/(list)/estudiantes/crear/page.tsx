@@ -1,7 +1,10 @@
 "use client";
 import { Title } from "@/components";
+import LoadingScreen from "@/components/ui/loading-page/page";
+import UnauthorizedScreen from "@/components/ui/unautorized/page";
 import { Especialidad } from "@/interfaces/entidades/especialidad";
 import { crearEntidad, fetchEntidades } from "@/services/common/apiService";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -22,6 +25,7 @@ export default function CrearEstudiante() {
   const [confirmPassword, setConfirmPassword] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordInvalid, setPasswordInvalid] = useState<string | null>(null);
+  const { data: session, status } = useSession();
 
   const fetchEspecialidades = async () => {
     try {
@@ -96,6 +100,7 @@ export default function CrearEstudiante() {
       const response = await crearEntidad({
         entidad: "estudiantes",
         data: submitValues,
+        token: session?.user.accessToken
       });
   
       Swal.fire({
@@ -136,7 +141,16 @@ export default function CrearEstudiante() {
 
   useEffect(() => {
     fetchEspecialidades();
-  }, []);
+  }, [status]);
+  if (status === "loading") {
+    // Renderizar una pantalla de carga mientras se obtiene la sesión
+    return <LoadingScreen/>;
+  }
+
+  if (status === "unauthenticated" || session?.user.rol != "ADMIN") {
+    // Si el usuario no está autenticado, redirigirlo o mostrar un mensaje
+    return <UnauthorizedScreen/>;
+  }
 
   return (
     <>

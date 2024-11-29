@@ -1,4 +1,5 @@
 import { Especialidad } from "./especialidad";
+import { Estado } from "./estado";
 import { Semestre } from "./semestre";
 
 export interface Materia {
@@ -6,6 +7,6 @@ export interface Materia {
   nombre: string;
   descripcion: string;
   semestre: Semestre;
-  estado: string;
+  estado: Estado;
   especialidad:Especialidad
 }

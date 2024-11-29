@@ -1,11 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import {
-  fetchEntidades,
-  crearEntidad,
-  editarEntidad,
-} from "@/services/common/apiService";
+import { fetchEntidades, editarEntidad } from "@/services/common/apiService";
 import Swal from "sweetalert2";
 import { Clase } from "@/interfaces/entidades/clase";
 import { Asistencia } from "@/interfaces/entidades/asistencia";
@@ -17,17 +13,18 @@ import LoadingScreen from "@/components/ui/loading-page/page";
 import UnauthorizedScreen from "@/components/ui/unautorized/page";
 import { fetchClasesByDocente } from "@/services/docentes-endpoints/clases";
 import { Title } from "@/components";
+import { format, isValid } from "date-fns";
+import { IoArrowBack, IoArrowForward } from "react-icons/io5";
 
 export default function GestionAsistencias() {
   const [clases, setClases] = useState<Clase[]>([]);
   const [selectedClase, setSelectedClase] = useState<string>("");
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(
+  const [selectedDate, setSelectedDate] = useState<string | null>(
     new Date().toISOString().split("T")[0]
   ); // Fecha actual
   const { data: session, status } = useSession();
 
-  // Obtener lista de clases al cargar la página
   const fetchClases = async () => {
     try {
       const response = await fetchClasesByDocente(session?.user.accessToken);
@@ -44,6 +41,7 @@ export default function GestionAsistencias() {
 
   const fetchAsistencias = async () => {
     try {
+      if (!selectedClase || !selectedDate) return;
       const response = await getAsistenciasByClaseAndDate(
         Number(selectedClase),
         selectedDate,
@@ -60,39 +58,20 @@ export default function GestionAsistencias() {
     }
   };
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchClases();
-    }
-  }, [status]);
-
-  useEffect(() => {
-    if (selectedClase && selectedDate) {
-      fetchAsistencias();
-    }
-  }, [selectedClase, selectedDate]);
-
-  if (status === "loading") {
-    return <LoadingScreen />;
-  }
-
-  if (status === "unauthenticated" || session?.user.rol !== "DOCENTE") {
-    return <UnauthorizedScreen />;
-  }
-
-  // Manejar la selección de clase
-  const handleClaseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedClase(e.target.value);
-    setAsistencias([]);
+  const isDateValid = (): boolean => {
+    return (
+      selectedDate !== null && isValid(new Date(`${selectedDate}T00:00:00`))
+    );
   };
 
-  // Manejar la selección de fecha
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(e.target.value);
-    setAsistencias([]);
+  const adjustDate = (days: number) => {
+    if (!isDateValid()) return;
+    const newDate = new Date(`${selectedDate}T00:00:00`);
+    newDate.setDate(newDate.getDate() + days);
+    const formattedDate = format(newDate, "yyyy-MM-dd");
+    setSelectedDate(formattedDate);
   };
 
-  // Generar registros de asistencia para todos los estudiantes de la clase en la fecha seleccionada
   const iniciarRegistroAsistencia = async () => {
     Swal.fire({
       title: "Iniciar registro de asistencia",
@@ -106,7 +85,7 @@ export default function GestionAsistencias() {
         try {
           const response = await CreateAsistenciasByClase(
             Number(selectedClase),
-            selectedDate, // Pasar la fecha seleccionada
+            selectedDate,
             session?.user.accessToken
           );
 
@@ -128,15 +107,13 @@ export default function GestionAsistencias() {
       }
     });
   };
-
-  // Cambiar el estado de asistencia de un estudiante
   const handleCambiarEstado = async (
     id_asistencia: string,
     nuevoEstado: string
   ) => {
     try {
       await editarEntidad({
-        entidad: `asistencias`,
+        entidad: "asistencias",
         id: id_asistencia,
         data: { nuevoEstado },
         token: session?.user.accessToken,
@@ -159,11 +136,31 @@ export default function GestionAsistencias() {
     }
   };
 
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchClases();
+    }
+  }, [status, session]);
+
+  useEffect(() => {
+    if (selectedClase && isDateValid()) {
+      fetchAsistencias();
+    }
+  }, [selectedClase, selectedDate]);
+
+  if (status === "loading") {
+    return <LoadingScreen />;
+  }
+
+  if (status === "unauthenticated" || session?.user.rol !== "DOCENTE") {
+    return <UnauthorizedScreen />;
+  }
+
   return (
     <div className="flex-wrap justify-center items-center">
       <div className="bg-white w-11/12 md:w-1/2 justify-self-center p-4 rounded-md mt-6 shadow-md">
-      <Title title="Panel de Asistencia" />
-      <div className="w-full rounded h-px bg-gray-300 my-6" />
+        <Title title="Panel de Asistencia" />
+        <div className="w-full rounded h-px bg-gray-300 my-6" />
 
         {/* Selección de clase */}
         <div className="mb-4">
@@ -176,7 +173,7 @@ export default function GestionAsistencias() {
           <select
             id="clase"
             value={selectedClase}
-            onChange={handleClaseChange}
+            onChange={(e) => setSelectedClase(e.target.value)}
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
           >
             <option value="">Seleccione una clase</option>
@@ -189,27 +186,48 @@ export default function GestionAsistencias() {
         </div>
 
         {/* Selección de fecha */}
-        <div className="mb-4">
-          <label
-            htmlFor="fecha"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Seleccionar Fecha
-          </label>
-          <input
-            type="date"
-            id="fecha"
-            value={selectedDate}
-            onChange={handleDateChange}
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
-          />
-        </div>
+        {selectedClase && (
+          <div className="mb-4 flex items-end space-x-4">
+            <button
+              onClick={() => adjustDate(-1)}
+              className={`bg-blue-500 flex items-center  text-white px-4 py-2 rounded hover:bg-blue-600 ${
+                !isDateValid() && "opacity-50 cursor-not-allowed"
+              }`}
+              disabled={!isDateValid()}
+            >
+              <IoArrowBack className="sm:mr-1" size={20} />
+              <span className="hidden sm:block">Anterior</span>
+            </button>
+            <div className="flex-1">
+              <input
+                type="date"
+                id="fecha"
+                value={selectedDate || ""}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue focus:border-royalBlue sm:text-sm"
+              />
+            </div>
+            <button
+              onClick={() => adjustDate(1)}
+              className={`bg-blue-500 flex items-center text-white px-4 py-2 rounded hover:bg-blue-600 ${
+                !isDateValid() && "opacity-50 cursor-not-allowed"
+              }`}
+              disabled={!isDateValid()}
+            >
+              <span className="hidden sm:block">Siguiente</span>
+              <IoArrowForward className="sm:ml-1" size={20} />
+            </button>
+          </div>
+        )}
 
         {/* Botón para iniciar registro */}
         {selectedClase && asistencias.length === 0 && (
           <button
             onClick={iniciarRegistroAsistencia}
-            className="bg-emeraldGreen text-white py-2 px-4 rounded-md hover:bg-emeraldGreen-dark transition duration-200"
+            className={`bg-emeraldGreen text-white py-2 px-4 rounded-md hover:bg-emeraldGreen-dark transition duration-200 ${
+              !isDateValid() && "opacity-50 cursor-not-allowed"
+            }`}
+            disabled={!isDateValid()}
           >
             Iniciar Registro de Asistencia
           </button>
@@ -248,7 +266,7 @@ export default function GestionAsistencias() {
                             e.target.value
                           )
                         }
-                        className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emeraldGreen"
+                        className={`px-2 py-1 border-gray-300 rounded-md focus:outline-none border-2 ${asistencia.asistio === "FALTÓ" ? " border-red-600 " : asistencia.asistio === "LICENCIA" ? "border-yellow-500" : "border-emeraldGreen"} `}
                       >
                         <option value="FALTÓ">Falta</option>
                         <option value="ASISTIÓ">Asistió</option>

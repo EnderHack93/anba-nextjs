@@ -34,7 +34,7 @@ const columnsFilter = [
     entidad: "especialidades",
   },
   {
-    key: "estado",
+    key: "estado.nombre",
     label: "Estado",
     values: [
       { key: "ACTIVO", label: "ACTIVO" },
@@ -60,7 +60,7 @@ export default function ListaMaterias() {
   const [data, setData] = useState<Materia[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(3);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -189,53 +189,71 @@ export default function ListaMaterias() {
     return <LoadingScreen />;
   }
 
-  if (status === "unauthenticated" || session?.user.rol !== "DOCENTE") {
+  if (status === "unauthenticated" || session?.user.rol !== "ADMIN") {
     return <UnauthorizedScreen />;
   }
 
   const renderCard = (item: Materia) => (
     <div
       key={item.id_materia}
-      className="bg-white shadow-2xl rounded-lg p-4 mb-6 w-full max-w-sm mx-auto lg:max-w-md flex flex-col justify-between h-64"
+      className="bg-white shadow-md rounded-lg p-4 w-full max-w-sm mx-auto lg:max-w-md flex flex-col justify-between h-72 border border-gray-200 hover:shadow-lg transition-shadow relative"
     >
-      <h3 className="text-lg font-semibold text-gray-800 truncate">
-        {item.nombre}
-      </h3>
-      <p className="text-sm text-gray-600 mt-2 line-clamp-3">
-        {item.descripcion}
-      </p>
-      <p className="text-sm text-gray-600 mt-2">
-        Semestre: {item.semestre.nombre}
-      </p>
-      <p className="text-sm text-gray-600 mt-2">
-        Especialidad: {item.especialidad.nombre}
-      </p>
+      {/* Estado en la esquina superior derecha */}
+      <div
+        className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${
+          item.estado.nombre === "ACTIVO"
+            ? "bg-emeraldGreen-light text-emeraldGreen-darker"
+            : "bg-red-100 text-red-600"
+        }`}
+      >
+        {item.estado.nombre}
+      </div>
 
-      <div className="flex items-center justify-around mt-4">
+      {/* Header */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 truncate">
+          {item.nombre}
+        </h3>
+        <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+          {item.descripcion}
+        </p>
+      </div>
+
+      {/* Información Adicional */}
+      <div className="mt-4">
+        <div className="text-sm text-gray-500">
+          <span className="font-medium text-gray-700">Semestre: </span>
+          {item.semestre.nombre}
+        </div>
+        <div className="text-sm text-gray-500 mt-1">
+          <span className="font-medium text-gray-700">Especialidad: </span>
+          {item.especialidad.nombre}
+        </div>
+      </div>
+
+      {/* Botones de Acción */}
+      <div className="flex items-center justify-between mt-6">
         <Link href={`materias/editar/${item.id_materia}`}>
-          <button className="bg-royalBlue text-white px-4 py-2 rounded-md hover:bg-royalBlue-dark transition items-center flex">
-            <FontAwesomeIcon
-              className="w-5 h-5 me-1 inline-block"
-              icon={faPenToSquare}
-            />
+          <button className="flex items-center justify-center bg-royalBlue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200 shadow">
+            <FontAwesomeIcon className="w-5 h-5 me-2" icon={faPenToSquare} />
             Editar
           </button>
         </Link>
 
-        {item.estado === "ACTIVO" ? (
+        {item.estado.nombre === "ACTIVO" ? (
           <button
             onClick={() => handleCambiarEstado(item.id_materia.toString())}
-            className="flex justify-center items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition"
+            className="flex items-center justify-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-500 transition duration-200 shadow"
           >
-            <IoRemoveCircleOutline className="me-1 w-6 h-6 md:w-5 md:h-5" />
+            <IoRemoveCircleOutline className="w-5 h-5 me-2" />
             Desactivar
           </button>
         ) : (
           <button
             onClick={() => handleCambiarEstado(item.id_materia.toString())}
-            className="flex justify-center items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition"
+            className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200 shadow"
           >
-            <IoCheckmarkCircleOutline className="me-1 w-6 h-6 md:w-5 md:h-5" />
+            <IoCheckmarkCircleOutline className="w-5 h-5 me-2" />
             Activar
           </button>
         )}
@@ -337,9 +355,9 @@ export default function ListaMaterias() {
               className="p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-royalBlue transition"
             >
               <option value={1}>1</option>
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
+              <option value={3}>3</option>
+              <option value={6}>6</option>
+              <option value={9}>9</option>
             </select>
           </div>
           {isFilterModalOpen && (

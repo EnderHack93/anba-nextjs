@@ -13,6 +13,7 @@ import { Clase } from "@/interfaces/entidades/clase";
 import {
   changeScoreEvaluacion,
   initRegistrosByIdClase,
+  confirmarNotas,
 } from "@/services/evaluaciones/evaluaciones";
 import { fetchClasesByDocente } from "@/services/docentes-endpoints/clases";
 
@@ -56,6 +57,17 @@ export default function PanelNotas() {
   const [totalPages, setTotalPages] = useState(1);
   const { data: session, status } = useSession();
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setPageSize(Number(event.target.value));
+    setCurrentPage(1);
+  };
+
   const fetchClases = async () => {
     try {
       const response = await fetchClasesByDocente(session?.user.accessToken);
@@ -85,7 +97,6 @@ export default function PanelNotas() {
       console.error(err);
     }
   };
-
   const handleChangeScore = async (
     id_evaluacion: number,
     nombre: string,
@@ -185,16 +196,41 @@ export default function PanelNotas() {
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleConfirmarNotas = async () => {
+    try {
+      if (!selectedClase || !selectedEvaluacion) return;
+      await confirmarNotas(
+        selectedClase.id_clase,
+        selectedEvaluacion,
+        session?.user.accessToken
+      );
+      Swal.fire({
+        icon: "success",
+        title: "Notas confirmadas",
+        text: "Las notas han sido confirmadas con éxito.",
+      });
+      fetchNotas();
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al confirmar las notas.",
+      });
+    }
   };
 
-  const handlePageSizeChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setPageSize(Number(event.target.value));
-    setCurrentPage(1);
-  };
+  useEffect(() => {
+    if (status === "authenticated") fetchClases();
+  }, [status]);
+
+  useEffect(() => {
+    if (selectedClase && selectedEvaluacion) fetchNotas();
+  }, [selectedClase, selectedEvaluacion, search, currentPage, pageSize]);
+
+  const allNotasActivas =
+    data.length > 0 && data.every((item) => item.estado.nombre === "ACTIVO");
+  console.log(allNotasActivas);
 
   const renderRow = (item: Evaluaciones) => (
     <tr key={item.id_evaluacion} className="py-3">
@@ -241,11 +277,13 @@ export default function PanelNotas() {
       <td>
         <button
           onClick={() =>
-            handleChangeScore(
-              item.id_evaluacion,
-              `${item.estudiante.nombres} ${item.estudiante.apellidos}`,
-              item.nota
-            )
+            item.estado.nombre === "ACTIVO"
+              ? handleChangeScore(
+                  item.id_evaluacion,
+                  `${item.estudiante.nombres} ${item.estudiante.apellidos}`,
+                  item.nota
+                )
+              : null
           }
           className={`p-2 rounded-xl min-w-12 text-white font-bold text-2xl sm:text-lg ${
             item.nota >= 75
@@ -253,21 +291,13 @@ export default function PanelNotas() {
               : item.nota >= 50
               ? "bg-yellow-500"
               : "bg-red-500"
-          } `}
+          }  ${item.estado.nombre === "ACTIVO" ? "" : "opacity-50 disabled:"}`}
         >
           {item.nota} <span className="text-lg sm:text-sm">Pts.</span>
         </button>
       </td>
     </tr>
   );
-
-  useEffect(() => {
-    if (status === "authenticated") fetchClases();
-  }, [status]);
-
-  useEffect(() => {
-    if (selectedClase && selectedEvaluacion) fetchNotas();
-  }, [selectedClase, selectedEvaluacion, search, currentPage, pageSize]);
 
   if (status === "loading") return <LoadingScreen />;
   if (status === "unauthenticated" || session?.user.rol !== "DOCENTE")
@@ -278,63 +308,76 @@ export default function PanelNotas() {
       <div className="bg-white lg:w-3/4  xl:w-1/2 justify-self-center p-6 rounded-md flex-1 m-4 shadow-xl">
         <Title title="Panel de Evaluación" />
         <div className="w-full rounded h-px bg-gray-300 my-6" />
-        <div className="grid grid-cols-1 md:grid-cols-2 m-4 gap-4">
-          <div>
-            <label
-              htmlFor="clase-select"
-              className="block text-lg font-medium text-gray-700 mb-2"
-            >
-              Seleccionar Clase
-            </label>
-            <select
-              id="clase-select"
-              className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-              value={selectedClase?.id_clase}
-              onChange={(e) =>
-                setSelectedClase(
-                  clases.find(
-                    (clase: Clase) =>
-                      clase.id_clase.toString() === e.target.value
-                  )
-                )
-              }
-            >
-              <option value="">Seleccione una clase</option>
-              {clases.map((clase: any) => (
-                <option key={clase.id_clase} value={clase.id_clase}>
-                  {clase.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-          {selectedClase && (
+        <div className="flex-row p-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 m-4 gap-4">
             <div>
               <label
-                htmlFor="evaluacion-select"
+                htmlFor="clase-select"
                 className="block text-lg font-medium text-gray-700 mb-2"
               >
-                Seleccionar Evaluación
+                Seleccionar Clase
               </label>
               <select
-                id="evaluacion-select"
+                id="clase-select"
                 className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                value={selectedEvaluacion}
-                onChange={(e) => setSelectedEvaluacion(e.target.value)}
+                value={selectedClase?.id_clase}
+                onChange={(e) =>
+                  setSelectedClase(
+                    clases.find(
+                      (clase: Clase) =>
+                        clase.id_clase.toString() === e.target.value
+                    )
+                  )
+                }
               >
-                <option value="">Seleccione una evaluación</option>
-                <option value="Primera Evaluacion Parcial">
-                  Primera Evaluación Parcial
-                </option>
-                <option value="Segunda Evaluacion Parcial">
-                  Segunda Evaluación Parcial
-                </option>
-                <option value="Evaluacion Final">Evaluación Final</option>
+                <option value="">Seleccione una clase</option>
+                {clases.map((clase: any) => (
+                  <option key={clase.id_clase} value={clase.id_clase}>
+                    {clase.nombre}
+                  </option>
+                ))}
               </select>
             </div>
-          )}
+            {selectedClase && (
+              <div>
+                <label
+                  htmlFor="evaluacion-select"
+                  className="block text-lg font-medium text-gray-700 mb-2"
+                >
+                  Seleccionar Evaluación
+                </label>
+                <select
+                  id="evaluacion-select"
+                  className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  value={selectedEvaluacion}
+                  onChange={(e) => setSelectedEvaluacion(e.target.value)}
+                >
+                  <option value="">Seleccione una evaluación</option>
+                  <option value="Primera Evaluacion Parcial">
+                    Primera Evaluación Parcial
+                  </option>
+                  <option value="Segunda Evaluacion Parcial">
+                    Segunda Evaluación Parcial
+                  </option>
+                  <option value="Evaluacion Final">Evaluación Final</option>
+                </select>
+              </div>
+            )}
+          </div>
+          <div className="m-4 flex justify-end">
+            {selectedClase && selectedEvaluacion && allNotasActivas ? (
+              <button
+                className="bg-royalBlue text-white px-4 py-2 rounded-md hover:bg-royalBlue-dark w-full md:w-auto"
+                onClick={handleConfirmarNotas}
+              >
+                Confirmar Evaluacion
+              </button>
+            ) : null}
+          </div>
         </div>
-        {selectedClase && selectedEvaluacion ? (
-          data.length > 0 ? (
+        {selectedClase &&
+          selectedEvaluacion &&
+          (data.length > 0 ? (
             <>
               <TableSearch
                 value={search}
@@ -390,12 +433,7 @@ export default function PanelNotas() {
                 Inicializar Registros
               </button>
             </div>
-          )
-        ) : (
-          <p className="text-gray-500 mt-4">
-            Por favor, selecciona una clase y una evaluación para ver las notas.
-          </p>
-        )}
+          ))}
       </div>
     </div>
   );
